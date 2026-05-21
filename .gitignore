@@ -7,3 +7,4 @@ venv/
 versions/release
 versions/v[0-9]
 *.pdf
+node_modules/
