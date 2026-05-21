@@ -1,0 +1,20 @@
+# 紫微斗数 API
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8119:8119"
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-sk-your-key-here}
+      - DATABASE_PATH=/data/ziwei.db
+      - ENGINE_PATH=/app/api/ziwei-engine.js
+      - PORT=8119
+      - NODE_PATH=/usr/local/lib/node_modules
+    volumes:
+      - ziwei_data:/data
+    restart: unless-stopped
+
+volumes:
+  ziwei_data:

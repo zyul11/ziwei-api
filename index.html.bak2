@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>紫微斗数 · 命盘 & 每日能量</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  background:#1a1210;color:#f0e0c8;min-height:100vh;position:relative
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(1px 1px at 10%80%,rgba(255,240,220,.3),transparent),
+             radial-gradient(1px 1px at 20%40%,rgba(255,240,220,.2),transparent),
+             radial-gradient(1px 1px at 50%90%,rgba(255,240,220,.25),transparent),
+             radial-gradient(1px 1px at 80%30%,rgba(240,192,96,.2),transparent),
+             radial-gradient(1.5px 1.5px at 65%70%,rgba(232,160,64,.2),transparent);
+  pointer-events:none;z-index:0
+}
+body:after{
+  content:'';position:fixed;top:50%;left:50%;
+  width:700px;height:700px;margin:-350px 0 0 -350px;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent,rgba(232,160,64,.04),transparent 30%,rgba(232,160,64,.02),transparent 60%,rgba(232,160,64,.03),transparent);
+  pointer-events:none;z-index:0;animation:bgSpin 40s linear infinite
+}
+@keyframes bgSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+/* ── 北斗七星 ── */
+#beidou{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.85;overflow:hidden}
+.star-wrap{position:absolute;transform:translate(-50%,-50%)}
+.star-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%}
+.star-core{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%}
+/* 连线（canvas替代） */
+#beidou-lines{position:absolute;top:0;left:0;width:100%;height:100%}
+@keyframes starGlow{0%,100%{opacity:.2;transform:translate(-50%,-50%) scale(.85)}50%{opacity:.6;transform:translate(-50%,-50%) scale(1.2)}}
+@keyframes starCore{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(.85)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}}
+
+.container{max-width:960px;margin:0 auto;padding:12px 16px;position:relative;z-index:1}
+
+/* ─── Hero ── */
+.hero{text-align:center;padding:28px 0 16px}
+.hero h1{
+  font-family:'Noto Serif SC',serif;font-size:30px;font-weight:900;
+  background:linear-gradient(135deg,#f0d8a0,#e8a040,#b07020);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:5px
+}
+.hero .sub{color:#8a7050;font-size:12px;letter-spacing:2px;margin-top:4px}
+/* ─── Language Switcher ── */
+.lang-bar{position:absolute;top:12px;right:16px;display:flex;gap:4px;z-index:10}
+.lang-btn{background:transparent;border:1px solid #3a2a1e;color:#8a7050;font-size:9px;padding:3px 7px;border-radius:6px;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:.5px}
+.lang-btn.active{background:rgba(232,160,64,.2);border-color:#e8a040;color:#e8b860}
+
+.hero{position:relative;text-align:center;padding:28px 0 16px}
+.hero h1{
+  font-family:'Noto Serif SC',serif;font-size:30px;font-weight:900;
+  background:linear-gradient(135deg,#f0d8a0,#e8a040,#b07020);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:5px
+}
+.hero .sub{color:#8a7050;font-size:12px;letter-spacing:2px;margin-top:4px}
+.hero .free-badge{display:inline-block;background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:1px;margin-top:6px;box-shadow:0 2px 10px rgba(232,160,64,.25)}
+
+/* ─── Stats ── */
+.stats-bar{display:flex;justify-content:center;gap:20px;background:rgba(232,160,64,.08);border:1px solid rgba(232,160,64,.12);border-radius:10px;padding:8px 16px;margin-bottom:12px;font-size:12px}
+.stats-bar .s-item{display:flex;align-items:center;gap:5px;color:#7a6a9a}
+.stats-bar .s-num{color:#e8b860;font-weight:700;font-size:14px}
+
+/* ─── Card ── */
+.card{background:linear-gradient(135deg,rgba(26,26,46,.93),rgba(16,16,30,.93));border:1px solid rgba(232,160,64,.18);border-radius:14px;padding:18px;margin-bottom:12px;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.card-title{font-size:13px;color:#e8b860;margin-bottom:12px;font-weight:500;letter-spacing:1.5px;display:flex;align-items:center;gap:6px}
+
+/* Input row */
+.date-row{display:flex;align-items:center;gap:5px;background:#1e1612;border:1px solid #3a2a1e;border-radius:10px;padding:6px 10px}
+.date-sel{flex:1;background:transparent;border:none;color:#e0d8e8;font-size:16px;font-weight:500;outline:none;cursor:pointer;padding:5px 0;appearance:auto;-webkit-appearance:auto;font-family:inherit;min-width:0}
+.date-sel option{background:#322014;color:#e0d8e8}
+.date-sep{color:#8a7050;font-size:12px;flex-shrink:0}
+
+/* Time */
+.time-group{margin-top:10px}
+.time-group label{font-size:10px;color:#8a7050;letter-spacing:1px;display:block;margin-bottom:4px}
+.time-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
+.time-btn{padding:5px 3px;text-align:center;background:#1e1612;border:1px solid #3a2a1e;border-radius:7px;cursor:pointer;transition:all .2s}
+.time-btn:hover{border-color:#e8a040}
+.time-btn.active{background:rgba(232,160,64,.2);border-color:#e8a040}
+.time-btn .e{font-size:12px;display:block}
+.time-btn .n{font-size:11px;color:#8a7050;display:block}
+.time-btn.active .n{color:#f0e0c8}
+
+/* Gender */
+.gender-group{display:flex;gap:6px;margin-top:10px}
+.gender-btn{flex:1;padding:8px;text-align:center;background:#1e1612;border:1px solid #3a2a1e;border-radius:9px;cursor:pointer;transition:all .3s;font-size:13px;color:#8a7050}
+.gender-btn.active{background:rgba(232,160,64,.2);border-color:#e8a040;color:#f0e0c8}
+
+/* Buttons */
+.btn-group{display:flex;gap:8px;margin-top:12px}
+.btn{flex:1;padding:11px 14px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:1.5px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;box-shadow:0 4px 16px rgba(232,160,64,.25)}
+.btn-primary:hover{box-shadow:0 6px 24px rgba(232,160,64,.4);transform:translateY(-1px)}
+.btn-secondary{background:linear-gradient(135deg,#3a2a1e,#1a1a3a);color:#e8b860;border:1px solid rgba(232,160,64,.2)}
+.btn-secondary:hover{border-color:#e8a040}
+.btn-secondary.daily{color:#f0b850;border-color:rgba(240,184,80,.15)}
+
+/* Tabs */
+.tab-bar{display:flex;gap:5px;margin-bottom:12px}
+.tab{flex:1;padding:8px;text-align:center;background:#1e1612;border:1px solid #3a2a1e;border-radius:8px;cursor:pointer;font-size:12px;color:#8a7050;transition:all .3s;letter-spacing:1.5px}
+.tab:hover{border-color:#e8a040}
+.tab.active{background:rgba(232,160,64,.2);border-color:rgba(232,160,64,.25);color:#e8b860}
+
+/* Panels */
+.panel{display:none}
+.panel.show{display:block;animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Loading */
+.loading{display:none;text-align:center;padding:30px}
+.loading.show{display:block}
+.loading .sp{font-size:28px;animation:tw 1.5s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.3;transform:scale(.9)}50%{opacity:1;transform:scale(1.1)}}
+.loading .lt{color:#8a7050;margin-top:6px;font-size:12px;letter-spacing:1.5px}
+
+/* Basic info */
+.basic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px}
+.basic-item{background:#1e1612;border:1px solid #3a2a1e;border-radius:7px;padding:6px 8px}
+.basic-item .l{font-size:8px;color:#8a7050;letter-spacing:1px}
+.basic-item .v{font-size:13px;color:#f0e0c8;margin-top:1px;font-weight:500}
+.basic-item .v.gold{color:#e89830}.basic-item .v.cyan{color:#f0b850}.basic-item .v.pink{color:#e0a060}
+
+/* Chart 3D */
+.chart-3d-wrap{perspective:1200px;perspective-origin:50% 40%;max-width:520px;margin:0 auto}
+.chart-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);
+  gap:4px;transform:rotateX(3deg);transform-style:preserve-3d;transition:transform .6s ease
+}
+.chart-grid:hover{transform:rotateX(0deg)}
+.chart-cell{
+  background:linear-gradient(145deg,#18182e,#1a0e08);
+  border:1px solid rgba(232,160,64,.12);border-radius:8px;
+  padding:5px 6px;display:flex;flex-direction:column;
+  position:relative;overflow:hidden;min-height:88px;
+  transform:translateZ(0);transform-style:preserve-3d;
+  transition:all .35s cubic-bezier(.25,.46,.45,.94);
+  box-shadow:0 2px 6px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.02)
+}
+.chart-cell:hover{
+  border-color:rgba(232,160,64,.3)!important;
+  transform:translateZ(10px) translateY(-3px) scale(1.02)!important;
+  box-shadow:0 6px 24px rgba(0,0,0,.5),0 3px 12px rgba(232,160,64,.12);z-index:10
+}
+.chart-cell.empty{background:transparent;border-color:transparent;box-shadow:none;transform:none}
+.chart-cell.empty:hover{transform:none;box-shadow:none;z-index:auto}
+.chart-cell:not(.empty)::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(232,160,64,.2),rgba(255,255,255,.03),rgba(232,160,64,.2),transparent)
+}
+.chart-cell:not(.empty)::before{
+  content:'';position:absolute;bottom:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(232,160,64,.08),transparent);pointer-events:none
+}
+.chart-cell[data-palace="命宫"]{
+  border-color:rgba(255,215,0,.25);box-shadow:0 2px 10px rgba(255,215,0,.06);position:relative;overflow:hidden
+}
+.chart-cell[data-palace="命宫"]::after{
+  content:'☰☷☵☲☳☴☶☱卍۞✧'!important;
+  position:absolute;top:-10%;left:-10%;right:-10%;bottom:-10%;
+  font-size:12px;color:rgba(255,215,0,.03);letter-spacing:10px;line-height:20px;
+  pointer-events:none;z-index:0;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;
+  padding:6px;overflow:hidden;white-space:pre;word-break:break-all;
+  background:none!important;height:auto!important;animation:runicSpin 30s linear infinite
+}
+@keyframes runicSpin{from{transform:rotate(0deg) scale(1.2)}to{transform:rotate(360deg) scale(1.2)}}
+.chart-cell[data-palace="命宫"] .ct,.chart-cell[data-palace="命宫"] .cb,.chart-cell[data-palace="命宫"] .cell-dx{position:relative;z-index:1}
+.chart-cell[data-palace="命宫"] .cs.major{font-size:14px;text-shadow:0 0 12px currentColor}
+.chart-cell[data-palace="命宫"] .cs.minor{font-size:10px}
+.chart-cell[data-palace="命宫"] .cs.hua{font-size:10px}
+.chart-cell[data-palace="命宫"] .cn{font-size:11px;color:#8a7aaa}
+.chart-cell[data-palace="命宫"] .ci{font-size:16px}
+.chart-cell[data-palace="命宫"]:hover{box-shadow:0 6px 24px rgba(0,0,0,.5),0 3px 20px rgba(240,192,96,.2);border-color:rgba(255,215,0,.4)}
+
+.ct{display:flex;align-items:flex-start;justify-content:space-between}
+.ci{font-size:14px;filter:drop-shadow(0 0 3px rgba(232,160,64,.2))}
+.cn{font-size:10px;color:#8a7050;letter-spacing:1px}
+.cdz{font-size:8px;color:#4a3018}
+.cb{flex:1;display:flex;flex-direction:column;justify-content:center;gap:1px;margin-top:3px}
+.cs{text-align:center;font-size:11px;font-weight:500;text-shadow:0 0 6px currentColor}
+.cs.major{font-size:13px;font-weight:600;text-shadow:0 0 10px currentColor}
+.cs.minor{font-size:9px;color:#e0a040;font-weight:400;text-shadow:0 0 4px rgba(96,160,240,.2)}
+.cs.hua{font-size:9px;color:#ff6060;font-weight:400;text-shadow:0 0 4px rgba(255,96,96,.2)}
+.cs.empty{text-align:center;font-size:9px;color:#444;padding-top:3px;text-shadow:none}
+.cell-dx{text-align:center;font-size:8px;color:#5a4020;margin-top:1px}
+.chart-cell .ct,.chart-cell .cb,.chart-cell .cell-dx{transition:opacity .3s ease}
+.chart-cell.rotating .ct,.chart-cell.rotating .cb,.chart-cell.rotating .cell-dx{opacity:.3}
+
+/* Center cell */
+.chart-cell.center-cell{
+  grid-row:2/4;grid-column:2/4;
+  background:linear-gradient(145deg,#14142e,#0c0c1e);
+  border-color:rgba(232,160,64,.1);display:flex;align-items:center;justify-content:center;
+  min-height:70px;overflow:visible;flex-direction:column
+}
+.chart-cell.center-cell:hover{border-color:rgba(232,160,64,.2)}
+.chart-cell.center-cell::after,.chart-cell.center-cell::before{display:none!important}
+.center-wrap{text-align:center;padding:3px;width:90%}
+.center-wrap .cw-row{display:flex;flex-wrap:wrap;justify-content:center;gap:3px 10px}
+.center-wrap .cw-item{text-align:center;flex:0 0 auto}
+.center-wrap .cw-item .l{font-size:8px;color:#8a7050;letter-spacing:1px}
+.center-wrap .cw-item .v{font-size:13px;font-weight:700;margin-top:1px}
+.center-wrap .cw-item .v.gold{color:#e89830;text-shadow:0 0 10px rgba(255,215,0,.1)}
+.center-wrap .cw-item .v.cyan{color:#f0b850;text-shadow:0 0 8px rgba(96,208,240,.08)}
+.center-wrap .cw-item .v.pink{color:#e0a060;text-shadow:0 0 8px rgba(255,136,170,.08)}
+.center-wrap .cw-title{font-size:9px;color:#8a7050;letter-spacing:1.5px;margin-bottom:1px}
+.center-wrap .cw-bazi{font-size:14px;font-weight:700;color:#e0d8e8;letter-spacing:2px;text-shadow:0 0 10px rgba(232,160,64,.08);margin-bottom:2px}
+
+/* Daxian */
+.dx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:3px}
+.dx-item{background:#1e1612;border:1px solid #3a2a1e;border-radius:7px;padding:6px 8px;display:flex;justify-content:space-between;align-items:center}
+.dx-item .dl{font-size:11px;color:#8a7050}.dx-item .dl .a{color:#f0e0c8;margin-left:3px}
+.dx-item .dr{font-size:11px;color:#e89830}
+
+/* Reading box */
+.rbox{background:#1e1612;border:1px solid #3a2a1e;border-radius:10px;padding:16px;line-height:1.7;font-size:14px;color:#e8d8c0;white-space:pre-wrap}
+.rhint{text-align:center;padding:20px;color:#8a7050;font-size:13px}
+
+/* Preview Lock Badge */
+.preview-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(240,184,80,.1);border:1px solid rgba(240,192,96,.2);border-radius:6px;padding:3px 8px;font-size:10px;color:#e89830;font-weight:500;letter-spacing:.5px;margin-bottom:10px}
+
+/* Style Pills */
+.style-pills{display:flex;gap:3px;justify-content:center;margin-top:8px}
+.style-pill{
+  padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer;
+  border:1px solid #3a2a1e;color:#8a7050;background:transparent;
+  transition:all .2s;letter-spacing:.5px;user-select:none
+}
+.style-pill:hover{border-color:#e8a040;color:#9a8aaa}
+.style-pill.active{background:rgba(232,160,64,.2);border-color:rgba(232,160,64,.3);color:#f0e0c8}
+.style-pill.active.daily{background:rgba(240,184,80,.12);border-color:rgba(140,200,80,.2);color:#f0e0c8}
+.style-switch-hint{font-size:9px;color:#3a3a5a;letter-spacing:.8px;margin-top:3px}
+
+/* Daily card */
+.daily-card{background:linear-gradient(135deg,rgba(50,30,15,.93),rgba(30,18,8,.93));border:1px solid rgba(240,184,80,.12);border-radius:12px;padding:16px}
+.daily-date{text-align:center;margin-bottom:10px}
+.daily-date .dd{font-size:15px;color:#f0b850;font-weight:500}
+.daily-date .dl{font-size:10px;color:#8a6a40;margin-top:1px}
+
+/* Conversion CTA Banner */
+.cta-banner{margin-top:14px;padding:14px;border-radius:10px;text-align:center;background:linear-gradient(135deg,rgba(232,160,64,.1),rgba(90,74,205,.05));border:1px solid rgba(232,160,64,.2)}
+.cta-banner .cta-title{font-size:13px;color:#e8b860;font-weight:600;margin-bottom:4px}
+.cta-banner .cta-desc{font-size:11px;color:#9a7850;margin-bottom:10px}
+.cta-banner .cta-btn{display:inline-block;padding:9px 22px;background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;letter-spacing:1px;transition:all .2s;box-shadow:0 3px 14px rgba(232,160,64,.25)}
+.cta-banner .cta-btn:hover{transform:translateY(-1px);box-shadow:0 5px 20px rgba(232,160,64,.4)}
+.dx-stat{background:#1e1612;border:1px solid #3a2a1e;border-radius:8px;padding:8px 12px;text-align:center}
+.dx-stat .dx-l{font-size:10px;color:#8a7050;letter-spacing:1px;margin-bottom:2px}
+.dx-stat .dx-v{font-size:14px;font-weight:600;color:#f0e0c8}
+.dx-stat .dx-v.gold{color:#e89830}
+.dx-tag{background:#1e1612;border:1px solid #3a2a1e;border-radius:8px;padding:8px 10px;text-align:center}
+.dx-tag .dx-tl{font-size:10px;letter-spacing:1px;margin-bottom:3px}
+.dx-tag .dx-tv{font-size:12px;font-weight:500;color:#e8d8c0}
+.cta-banner.daily-cta{background:linear-gradient(135deg,rgba(80,50,20,.1),rgba(50,30,10,.05));border-color:rgba(240,184,80,.12)}
+.cta-banner.daily-cta .cta-title{color:#f0b850}
+.cta-banner.daily-cta .cta-btn{background:linear-gradient(135deg,#e8a040,#d4802a);box-shadow:0 3px 14px rgba(42,138,90,.25)}
+
+/* Premium Unlock Section */
+.premium-unlock{margin-top:16px;padding:16px;border-radius:12px;background:linear-gradient(135deg,rgba(232,160,64,.06),rgba(90,74,205,.03));border:1px solid rgba(232,160,64,.2)}
+.premium-unlock .urgency{text-align:center;font-size:14px;font-weight:600;color:#e06030;padding:10px 0;margin-bottom:12px;line-height:1.6;background:linear-gradient(90deg,transparent,rgba(224,96,48,.08),transparent)}
+.premium-unlock .urgency span{display:inline-block;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.cat-card{padding:10px;border-radius:8px;background:#1e1612;border:1px solid #3a2a1e;cursor:pointer;transition:all .2s}
+.cat-card:hover{border-color:#e8a040;background:#2a1a10}
+.cat-card .cat-icon{font-size:16px;margin-bottom:2px}
+.cat-card .cat-title{font-size:12px;font-weight:600;color:#f0e0c8;margin-bottom:2px}
+.cat-card .cat-preview{font-size:10px;color:#9a7850;line-height:1.4}
+.cat-card .cat-lock{font-size:9px;color:#5a4020;margin-top:3px}
+.unlock-cta{text-align:center;padding:10px 0 4px}
+.unlock-cta .unlock-value{font-size:14px;font-weight:700;color:#e8b860;margin-bottom:6px}
+.unlock-cta .unlock-sub{font-size:10px;color:#9a7850;margin-bottom:10px}
+.unlock-cta .unlock-btn{position:relative;display:inline-block;padding:12px 32px;background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(232,160,64,.3);overflow:hidden}
+.unlock-cta .unlock-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(232,160,64,.5)}
+.unlock-cta .unlock-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);animation:shine 3s ease-in-out infinite}
+@keyframes shine{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+
+/* Buy Modal */
+.buy-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:none;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(8px)}
+.buy-overlay.show{display:flex}
+.buy-modal{max-width:440px;width:100%;background:#1a1210;border:1px solid #3a2a1e;border-radius:16px;padding:24px;position:relative;max-height:90vh;overflow-y:auto}
+.buy-modal .close-btn{position:absolute;top:12px;right:12px;background:none;border:none;color:#8a7050;font-size:18px;cursor:pointer}
+.buy-modal h2{text-align:center;font-size:16px;color:#f0e0c8;margin-bottom:4px}
+.buy-modal .sub{text-align:center;font-size:11px;color:#9a7850;margin-bottom:16px}
+.buy-plan{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.buy-plan .plan-card{border:1px solid #3a2a1e;border-radius:10px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:all .2s;background:#1e1612}
+.buy-plan .plan-card:hover,.buy-plan .plan-card.selected{border-color:#e8a040;background:#2a1a10}
+.buy-plan .plan-card .plan-name{font-size:13px;font-weight:600;color:#f0e0c8}
+.buy-plan .plan-card .plan-detail{font-size:10px;color:#9a7850}
+.buy-plan .plan-card .plan-price{font-size:15px;font-weight:700;color:#e8b860}
+.buy-plan .plan-card.popular{border-color:#e8a040;background:linear-gradient(135deg,rgba(240,184,80,.08),rgba(240,184,80,.02))}
+.buy-plan .plan-card.popular .plan-price{color:#e8a040}
+.buy-modal .buy-submit{display:block;width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s;box-shadow:0 3px 14px rgba(232,160,64,.3)}
+.buy-modal .buy-submit:hover{transform:translateY(-1px);box-shadow:0 5px 20px rgba(232,160,64,.5)}
+.buy-modal .buy-result{display:none;text-align:center;padding:20px}
+.buy-modal .buy-result.show{display:block}
+.buy-modal .buy-result .key-value{background:#1a1210;border:1px solid #3a2a1e;border-radius:8px;padding:8px 12px;font-size:12px;font-family:monospace;color:#e8a040;word-break:break-all;margin:8px 0}
+.buy-modal .buy-result .key-note{font-size:10px;color:#9a7850;margin-top:8px}
+
+@media(max-width:600px){
+  .hero h1{font-size:24px}
+  .cat-grid{grid-template-columns:1fr 1fr}
+  .buy-modal{padding:16px}
+}
+
+/* Links */
+.links{display:flex;gap:8px;justify-content:center;margin:16px 0}
+.links a{color:#8a7050;font-size:11px;text-decoration:none;padding:6px 12px;border:1px solid #3a2a1e;border-radius:7px;transition:all .3s}
+.links a:hover{color:#e8b860;border-color:#e8a040}
+
+/* Key Modal */
+.key-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+.key-modal-overlay.show{display:flex}
+.key-modal{
+  background:linear-gradient(135deg,#322014,#1e1612);
+  border:1px solid rgba(232,160,64,.2);border-radius:20px;
+  padding:32px;max-width:380px;width:90%;text-align:center;
+  animation:modalIn .3s ease;position:relative
+}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.key-modal .modal-close{
+  position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;
+  border:1px solid #3a2a1e;background:transparent;color:#9a7850;
+  font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center
+}
+.key-modal .modal-close:hover{color:#e8b860;border-color:#e8a040}
+.key-modal .modal-icon{font-size:40px;margin-bottom:12px}
+
+/* Mobile */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);justify-content:center;align-items:center;animation:fadeIn .3s ease}
+.modal-overlay.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{background:linear-gradient(145deg,#322014,#1a0e08);border:1px solid rgba(232,160,64,.2);border-radius:18px;padding:28px 24px;max-width:380px;width:92%;box-shadow:0 24px 60px rgba(0,0,0,.6);animation:modalUp .35s ease}
+@keyframes modalUp{from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-icon{font-size:40px;text-align:center;margin-bottom:6px}
+.modal-title{text-align:center;font-size:18px;font-weight:700;color:#f0d8a0;letter-spacing:1.5px;margin-bottom:2px}
+.modal-sub{text-align:center;font-size:12px;color:#8a7050;margin-bottom:16px}
+.modal-packages{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.modal-pkg{display:flex;justify-content:space-between;align-items:center;background:#1e1612;border:1px solid #3a2a1e;border-radius:9px;padding:9px 12px;transition:all .2s;position:relative;overflow:hidden}
+.modal-pkg:hover{border-color:#e8a040;background:#18182e}
+.modal-pkg.popular{border-color:rgba(255,215,0,.25);background:rgba(255,215,0,.04)}
+.modal-pkg.popular::before{content:'🔥 最受欢迎';position:absolute;top:0;right:0;background:linear-gradient(135deg,#e89830,#d4a820);color:#322014;font-size:8px;font-weight:700;padding:2px 8px;border-radius:0 8px 0 8px;letter-spacing:.5px}
+.modal-pkg .p-left{display:flex;flex-direction:column}
+.modal-pkg .name{font-size:13px;color:#c0b0d0}
+.modal-pkg .p-count{font-size:10px;color:#8a7050;margin-top:1px}
+.modal-pkg .p-price{font-size:15px;font-weight:700;color:#e89830}
+.modal-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1.5px;transition:all .2s;box-shadow:0 4px 16px rgba(232,160,64,.25)}
+.modal-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(232,160,64,.4)}
+.modal-close{display:block;margin:10px auto 0;background:none;border:none;color:#5a4020;font-size:12px;cursor:pointer}
+.modal-close:hover{color:#9a7850}
+
+@media(max-width:600px){
+  .chart-grid{max-width:100%;gap:2px}
+  .chart-cell{min-height:64px;padding:3px}
+  .cs.major{font-size:11px}
+  .time-grid{grid-template-columns:repeat(4,1fr)}
+  .basic-grid{grid-template-columns:repeat(2,1fr)}
+  .btn-group{flex-direction:column}
+  .stats-bar{gap:10px;font-size:11px}
+}
+</style>
+<script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<!-- 北斗七星背景 -->
+<div id="beidou"></div>
+<script>
+(function(){
+  const b=document.getElementById('beidou');
+  const stars=[
+    {x:22,y:18,color:'#b8d4ff',glow:'rgba(184,212,255,.4)',delay:0,dur:3.5,core:2.5,glowR:7},
+    {x:15,y:32,color:'#d4e8ff',glow:'rgba(212,232,255,.3)',delay:.6,dur:3,core:2,glowR:5},
+    {x:20,y:48,color:'#c8ddff',glow:'rgba(200,221,255,.3)',delay:1.2,dur:2.8,core:1.8,glowR:5},
+    {x:30,y:56,color:'#e0eeff',glow:'rgba(224,238,255,.35)',delay:2.1,dur:4,core:1.6,glowR:5},
+    {x:45,y:51,color:'#f0e8cc',glow:'rgba(240,232,204,.45)',delay:.3,dur:4.5,core:2.8,glowR:9},
+    {x:58,y:45,color:'#e8dccc',glow:'rgba(232,220,204,.3)',delay:1.8,dur:3.2,core:2.2,glowR:5},
+    {x:78,y:36,color:'#ffe8b0',glow:'rgba(255,232,176,.35)',delay:2.7,dur:3.8,core:2.8,glowR:8},
+    {x:61,y:48,color:'#c8ddff',glow:'rgba(200,221,255,.25)',delay:2.3,dur:2.5,core:.8,glowR:3}
+  ];
+  stars.forEach((s,i)=>{
+    const w=document.createElement('div');
+    w.className='star-wrap';
+    w.style.left=s.x+'%';w.style.top=s.y+'%';
+    // 光晕层
+    const g=document.createElement('div');
+    g.className='star-glow';
+    g.style.width=s.glowR*2+'vmin';g.style.height=s.glowR*2+'vmin';
+    g.style.background='radial-gradient(circle,'+(i===4?'rgba(240,232,204,.5)':s.glow)+' 0%,transparent 70%)';
+    g.style.animation='starGlow '+(s.dur)+'s ease-in-out infinite';
+    g.style.animationDelay=s.delay+'s';
+    w.appendChild(g);
+    // 核心
+    const c=document.createElement('div');
+    c.className='star-core';
+    c.style.width=s.core+'vmin';c.style.height=s.core+'vmin';
+    c.style.background=s.color;
+    c.style.boxShadow='0 0 '+(4+s.core)+'px '+s.color;
+    c.style.animation='starCore '+(s.dur)+'s ease-in-out infinite';
+    c.style.animationDelay=s.delay+'s';
+    w.appendChild(c);
+    b.appendChild(w);
+  });
+  // 连线（canvas）
+  const cv=document.createElement('canvas');
+  cv.id='beidou-lines';
+  b.appendChild(cv);
+  function drawLines(){
+    const w=cv.width=cv.clientWidth,h=cv.height=cv.clientHeight;
+    if(!w||!h)return;
+    const ctx=cv.getContext('2d');
+    ctx.clearRect(0,0,w,h);
+    ctx.beginPath();
+    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=.5;ctx.setLineDash([3,4]);
+    const pts=[[22,18],[15,32],[20,48],[30,56],[45,51],[58,45],[78,36]];
+    ctx.moveTo(pts[0][0]*w/100,pts[0][1]*h/100);
+    for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0]*w/100,pts[i][1]*h/100);
+    ctx.stroke();
+    // 辅星连线
+    ctx.beginPath();ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=.3;ctx.setLineDash([1,3]);
+    ctx.moveTo(58*w/100,45*h/100);ctx.lineTo(61*w/100,48*h/100);
+    ctx.stroke();
+    requestAnimationFrame(drawLines);
+  }
+  drawLines();
+})();
+</script>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats-bar" id="statsBar">
+    <div class="s-item">👥 <span class="s-num" id="statUsers">-</span> 位用户</div>
+    <div class="s-item">🔮 <span class="s-num" id="statCalls">-</span> 次排盘</div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="lang-bar">
+      <button class="lang-btn active" data-lang="zh-Hant" onclick="setLang('zh-Hant')">繁</button>
+      <button class="lang-btn" data-lang="zh-Hans" onclick="setLang('zh-Hans')">简</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+    <h1>紫微鬥數</h1>
+    <div class="sub">命盘推演 · 每日能量指引</div>
+    <div class="free-badge" id="freeBadge" style="display:none">🔮 免费体验 · 每人1次</div>
+  </div>
+
+  <!-- Input Card -->
+  <div class="card">
+    <div class="card-title">📅 出生信息 <span id="keyIndicator" style="font-size:10px;color:#f0b850;font-weight:400;letter-spacing:1px;display:none"></span></div>
+    <div class="date-row">
+      <select id="selYear" class="date-sel"></select>
+      <span class="date-sep">年</span>
+      <select id="selMonth" class="date-sel"></select>
+      <span class="date-sep">月</span>
+      <select id="selDay" class="date-sel"></select>
+    <span class="date-sep">日</span>
+  </div>
+  <div id="lunarDisplay" style="font-size:11px;color:#8a7050;margin-top:6px;letter-spacing:1px;text-align:center">选择日期后自动显示农历</div>
+    <div class="time-group">
+      <label>⏰ 出生时辰</label>
+      <div class="time-grid" id="tg"></div>
+    </div>
+    <div class="gender-group" id="gg">
+      <div class="gender-btn" onclick="selG('male')">♂ 男</div>
+      <div class="gender-btn" onclick="selG('female')">♀ 女</div>
+    </div>
+    <!-- 所在城市 -->
+    <div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding:6px 10px;background:#1e1612;border:1px solid #3a2a1e;border-radius:9px">
+      <span style="font-size:12px;color:#9a7850;flex-shrink:0">📍</span>
+      <select id="citySelect" style="flex:1;background:transparent;border:none;color:#e8d8c0;font-size:12px;outline:none;padding:4px 0;cursor:pointer">
+        <option value="">所在城市（选填）</option>
+        <!-- 🌏 东南亚 -->
+        <option value="新加坡">🇸🇬 新加坡</option>
+        <option value="吉隆坡">🇲🇾 吉隆坡</option>
+        <option value="曼谷">🇹🇭 曼谷</option>
+        <option value="雅加达">🇮🇩 雅加达</option>
+        <option value="马尼拉">🇵🇭 马尼拉</option>
+        <option value="胡志明">🇻🇳 胡志明</option>
+        <!-- 🇨🇳 大中华 -->
+        <option value="台北">🇹🇼 台北</option>
+        <option value="香港">🇭🇰 香港</option>
+        <option value="澳门">🇲🇴 澳门</option>
+        <option value="上海">🇨🇳 上海</option>
+        <option value="北京">🇨🇳 北京</option>
+        <option value="深圳">🇨🇳 深圳</option>
+        <option value="广州">🇨🇳 广州</option>
+        <option value="杭州">🇨🇳 杭州</option>
+        <option value="成都">🇨🇳 成都</option>
+        <option value="高雄">🇹🇼 高雄</option>
+        <option value="台中">🇹🇼 台中</option>
+        <!-- 🇺🇸 北美 -->
+        <option value="纽约">🇺🇸 纽约</option>
+        <option value="洛杉矶">🇺🇸 洛杉矶</option>
+        <option value="旧金山">🇺🇸 旧金山</option>
+        <option value="西雅图">🇺🇸 西雅图</option>
+        <option value="波士顿">🇺🇸 波士顿</option>
+        <option value="芝加哥">🇺🇸 芝加哥</option>
+        <option value="温哥华">🇨🇦 温哥华</option>
+        <option value="多伦多">🇨🇦 多伦多</option>
+        <!-- 🌏 亚太其他 -->
+        <option value="东京">🇯🇵 东京</option>
+        <option value="首尔">🇰🇷 首尔</option>
+        <option value="悉尼">🇦🇺 悉尼</option>
+        <option value="墨尔本">🇦🇺 墨尔本</option>
+        <option value="奥克兰">🇳🇿 奥克兰</option>
+        <!-- 🇪🇺 欧洲 -->
+        <option value="伦敦">🇬🇧 伦敦</option>
+        <option value="巴黎">🇫🇷 巴黎</option>
+        <option value="阿姆斯特丹">🇳🇱 阿姆斯特丹</option>
+        <!-- 🌍 其他 -->
+        <option value="迪拜">🇦🇪 迪拜</option>
+        <option value="开普敦">🇿🇦 开普敦</option>
+      </select>
+    </div>
+    <!-- API Key 输入 -->
+    <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:8px 12px;background:#1e1612;border:1px solid #3a2a1e;border-radius:10px">
+      <span style="font-size:12px;color:#9a7850;flex-shrink:0">🔑</span>
+      <input type="text" id="apiKeyInput" placeholder="输入 API Key（购买后获得）"
+        style="flex:1;background:transparent;border:none;color:#e8d8c0;font-size:13px;font-family:monospace;outline:none;padding:4px 0">
+      <span id="keyStatus" style="font-size:10px;color:#9a7850;flex-shrink:0"></span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="go('paipan')">🌟 排盘 + 详解</button>
+      <button class="btn btn-secondary daily" onclick="go('daily')">🌅 今日运势</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="sp">✦</div>
+    <div class="lt" id="loadingText">命盘推演中...</div>
+  </div>
+
+  <!-- Result -->
+  <div class="result" id="result">
+
+    <!-- Tabs -->
+    <div class="tab-bar" id="tabBar" style="display:none">
+
+  </div>
+
+    <!-- Chart Panel -->
+    <div class="panel show" id="panelChart">
+      <div class="card" id="chartCard" style="display:none">
+        <div class="card-title">🌟 命盘</div>
+        <div class="chart-grid" id="chartGrid"></div>
+      </div>
+      <div class="card" id="aiCard" style="display:none">
+        <div class="card-title">
+          <span>📖 命盘详解</span>
+          <span class="preview-badge" id="previewBadge" style="display:none">🔒 免费预览</span>
+        </div>
+        <div id="aiContent"></div>
+        <div id="pdfBtnPaipan" style="display:none;margin-top:12px;text-align:center">
+          <button onclick="downloadPDF('paipan')" style="background:rgba(232,160,64,.1);border:1px solid rgba(232,160,64,.2);color:#e8b860;padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">📥 下载 PDF 报告</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DaXian Panel -->
+    <div class="panel" id="panelDaxian">
+      <div class="card" style="border-color:rgba(240,184,80,.12)">
+        <div class="card-title" style="color:#e89830">
+          <span>⏳ 当前十年大限</span>
+        </div>
+        <div id="dxDetail"></div>
+        <div id="dxAiReading" style="margin-top:14px"></div>
+        <div id="pdfBtnDaxian" style="display:none;margin-top:12px;text-align:center">
+          <button onclick="downloadPDF('daxian')" style="background:rgba(240,184,80,.1);border:1px solid rgba(240,184,80,.2);color:#e89830;padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">📥 下载 PDF 报告</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Panel -->
+    <div class="panel" id="panelDaily">
+      <div class="daily-card">
+        <div class="daily-date">
+          <div class="dd" id="dailyDate">加载中...</div>
+          <div class="dl" id="dailyLunar"></div>
+        </div>
+        <div class="preview-badge" id="dailyPreviewBadge" style="display:none;margin:0 auto 12px;justify-content:center">🔒 每日免费预览 · 仅限1次</div>
+        <div class="rbox" id="dailyContent"></div>
+        <div id="pdfBtnDaily" style="display:none;margin-top:12px;text-align:center">
+          <button onclick="downloadPDF('daily')" style="background:rgba(100,255,180,.1);border:1px solid rgba(140,200,80,.2);color:#f0b850;padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">📥 下载 PDF 报告</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testimonials -->
+    <div class="card" style="margin-top:4px">
+      <div class="card-title">💬 真實用戶回饋</div>
+      <div class="testimonial-wrap">
+        <div class="testimonial-card">
+          <div data-ti="0n" style="color:#e8a040;font-weight:600;margin-bottom:4px">🇸🇬 新加坡 · 李R</div>
+          <div data-ti="0q" style="color:#e0d0b0">"武曲七殺的職場分析太準了，金融行業那段完全就是我！"</div>
+        </div>
+        <div class="testimonial-card">
+          <div data-ti="1n" style="color:#e8a040;font-weight:600;margin-bottom:4px">🇲🇾 吉隆坡 · 陳小姐</div>
+          <div data-ti="1q" style="color:#e0d0b0">"免費排了一下，解讀真的跟我的情況很貼近，已買Key～"</div>
+        </div>
+        <div class="testimonial-card">
+          <div data-ti="2n" style="color:#e8a040;font-weight:600;margin-bottom:4px">🇹🇼 台北 · 王先生</div>
+          <div data-ti="2q" style="color:#e0d0b0">"十年大限的分析讓我知道接下來該專注哪個方向，感謝！"</div>
+        </div>
+        <div class="testimonial-card">
+          <div data-ti="3n" style="color:#e8a040;font-weight:600;margin-bottom:4px">🇭🇰 香港 · 張生</div>
+          <div data-ti="3q" style="color:#e0d0b0">"每日運勢很準確，今天的提醒剛好幫我避開了一個麻煩。"</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Share -->
+    <div style="display:flex;gap:8px;justify-content:center;padding:4px 0 12px">
+      <button onclick="shareTo('line')" style="background:#1e1612;border:1px solid #3a2a1e;border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;color:#e0d0b0">💬 LINE分享</button>
+      <button onclick="shareTo('whatsapp')" style="background:#1e1612;border:1px solid #3a2a1e;border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;color:#e0d0b0">📱 WhatsApp分享</button>
+      <button onclick="shareTo('copy')" style="background:#1e1612;border:1px solid #3a2a1e;border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer;color:#e0d0b0">🔗 复制链接</button>
+    </div>
+
+  </div><!-- /result -->
+
+  <!-- Refund & Disclaimer -->
+  <div style="text-align:center;padding:4px 0 8px;font-size:9px;color:#4a3018;line-height:1.6">
+    💰 30天无条件全额退款 · 零风险体验
+  </div>
+  <div style="text-align:center;padding:8px 0 24px;font-size:10px;color:#4a3018;line-height:1.6;letter-spacing:.5px">
+    ⚠️ 内容仅供娱乐参考，不构成专业建议
+  </div>
+
+</div><!-- /container -->
+
+<!-- Key Modal -->
+<div class="key-modal-overlay" id="keyModal">
+  <div class="key-modal">
+    <div class="modal-icon">🔑</div>
+    <h2 style="margin-bottom:6px">需要 API Key</h2>
+    <p style="color:#9a7850;font-size:13px;margin-bottom:16px">输入已购买的 API Key 即可使用</p>
+    <div style="background:#1e1612;border:1px solid #3a2a1e;border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-size:11px;color:#8a7050;margin-bottom:4px;letter-spacing:1px;text-align:center">💳 在线支付自动获取 Key</div>
+      <div style="font-size:10px;color:#9a7850;text-align:center">前往 <a href="/shop.html" style="color:#e8a040;text-decoration:none">购买页面</a> 选择套餐，支付后即时开通</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-secondary" onclick="document.getElementById('keyModal').classList.remove('show')" style="flex:1">我知道了</button>
+      <button class="btn btn-primary" onclick="location.href='shop.html'" style="flex:1">去购买 Key</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.location.origin === 'file://' || window.location.origin === 'null' ? 'http://127.0.0.1:8119' : window.location.origin;
+let USER_KEY='';
+let USER_LANG=localStorage.getItem('zw_lang')||'zh-Hant';
+
+const LANG={
+  'zh-Hant':{
+    title:'紫微鬥數',sub:'命盘推演 · 每日能量指引',freeBadge:'🔮 免费体验 · 每人1次',
+    birthInfo:'📅 出生信息',lunarHint:'选择日期后自动显示农历',birthTime:'⏰ 出生时辰',
+    male:'♂ 男',female:'♀ 女',city:'📍 所在城市（選填）',
+    apiKeyPH:'输入 API Key（购买后获得）',btnChart:'🌟 排盘 + 详解',btnDaily:'🌅 今日运势',
+    loading:'命盘推演中...',statUsers:'位用户',statCalls:'次排盘',
+    tabChart:'🌟 命盘',tabAi:'📖 详解',tabDaxian:'⏳ 大限',tabDaily:'🌅 运势',
+    chartTitle:'🌟 命盘',aiTitle:'📖 命盘详解',previewBadge:'🔒 免费预览',
+    pdfBtn:'📥 下载 PDF 报告',daxianTitle:'⏳ 当前十年大限',dailyDate:'加载中...',
+    dailyPreview:'🔒 每日免费预览 · 僅限1次',
+    refund:'💰 30天无条件全额退款 · 零风险体验',disclaimer:'⚠️ 内容仅供娱乐参考，不构成专业建议',
+    feedback:'💬 真實用戶回饋',shareLine:'💬 LINE分享',shareWA:'📱 WhatsApp分享',shareCopy:'🔗 复制链接',
+    keyReady:'🔑 Key已就緒',keyPlaceholder:'输入 API Key（购买后获得）',
+    otherCity:'其他城市',freeText:'🌟 免费排盘体验',freeDailyText:'🌅 免费今日运势',
+    lunarPrefix:'农历',
+    modalTitle:'需要 API Key',modalDesc:'输入已购买的 API Key 即可使用',
+    modalPay:'💳 在线支付自动获取 Key',modalPayLink:'前往 <a href="/shop.html" style="color:#e8a040;text-decoration:none">购买页面</a> 选择套餐，支付后即时开通',
+    modalGotIt:'我知道了',modalBuy:'去购买 Key',
+    styleModern:'✨现代',styleClassic:'📜古典',stylePoetic:'🌸诗意',
+    keyBalance:'余',keyInvalid:'无效Key',
+    dateSep:['','年','月','日'],
+    t0n:'🇸🇬 新加坡 · 李R',t0q:'"武曲七殺的職場分析太準了，金融行業那段完全就是我！"',
+    t1n:'🇲🇾 吉隆坡 · 陳小姐',t1q:'"免費排了一下，解讀真的跟我的情況很貼近，已買Key～"',
+    t2n:'🇹🇼 台北 · 王先生',t2q:'"十年大限的分析讓我知道接下來該專注哪個方向，感謝！"',
+    t3n:'🇭🇰 香港 · 張生',t3q:'"每日運勢很準確，今天的提醒剛好幫我避開了一個麻煩。"',
+    months:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+    yearSuffix:'年',monthSuffix:'月',daySuffix:'日',
+  },
+  'zh-Hans':{
+    title:'紫微斗数',sub:'命盘推演 · 每日能量指引',freeBadge:'🔮 免费体验 · 每人1次',
+    birthInfo:'📅 出生信息',lunarHint:'选择日期后自动显示农历',birthTime:'⏰ 出生时辰',
+    male:'♂ 男',female:'♀ 女',city:'📍 所在城市（选填）',
+    apiKeyPH:'输入 API Key（购买后获得）',btnChart:'🌟 排盘 + 详解',btnDaily:'🌅 今日运势',
+    loading:'命盘推演中...',statUsers:'位用户',statCalls:'次排盘',
+    tabChart:'🌟 命盘',tabAi:'📖 详解',tabDaxian:'⏳ 大限',tabDaily:'🌅 运势',
+    chartTitle:'🌟 命盘',aiTitle:'📖 命盘详解',previewBadge:'🔒 免费预览',
+    pdfBtn:'📥 下载 PDF 报告',daxianTitle:'⏳ 当前十年大限',dailyDate:'加载中...',
+    dailyPreview:'🔒 每日免费预览 · 仅限1次',
+    refund:'💰 30天无条件全额退款 · 零风险体验',disclaimer:'⚠️ 内容仅供娱乐参考，不构成专业建议',
+    feedback:'💬 真实用户反馈',shareLine:'💬 LINE分享',shareWA:'📱 WhatsApp分享',shareCopy:'🔗 复制链接',
+    keyReady:'🔑 Key已就绪',keyPlaceholder:'输入 API Key（购买后获得）',
+    otherCity:'其他城市',freeText:'🌟 免费排盘体验',freeDailyText:'🌅 免费今日运势',
+    lunarPrefix:'农历',
+    modalTitle:'需要 API Key',modalDesc:'输入已购买的 API Key 即可使用',
+    modalPay:'💳 在线支付自动获取 Key',modalPayLink:'前往 <a href="/shop.html" style="color:#e8a040;text-decoration:none">购买页面</a> 选择套餐，支付后即时开通',
+    modalGotIt:'我知道了',modalBuy:'去购买 Key',
+    styleModern:'✨现代',styleClassic:'📜古典',stylePoetic:'🌸诗意',
+    keyBalance:'余',keyInvalid:'无效Key',
+    dateSep:['','年','月','日'],
+    t0n:'🇸🇬 新加坡 · 李先生',t0q:'"武曲七杀的职场分析太准了，金融行业那段完全就是我！"',
+    t1n:'🇲🇾 吉隆坡 · 陈小姐',t1q:'"免费排了一下，解读真的跟我的情况很贴近，已买Key～"',
+    t2n:'🇹🇼 台北 · 王先生',t2q:'"十年大限的分析让我知道接下来该专注哪个方向，感谢！"',
+    t3n:'🇭🇰 香港 · 张生',t3q:'"每日运势很准确，今天的提醒刚好帮我避开了一个麻烦。"',
+    months:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+    yearSuffix:'年',monthSuffix:'月',daySuffix:'日',
+  },
+  'en':{
+    title:'Ziwei Doushu',sub:'Chart Reading · Daily Energy Guide',freeBadge:'🔮 Free Trial · 1 per person',
+    birthInfo:'📅 Birth Info',lunarHint:'Select date to show lunar calendar',birthTime:'⏰ Birth Time',
+    male:'♂ Male',female:'♀ Female',city:'📍 City (optional)',
+    apiKeyPH:'Enter API Key (get after purchase)',btnChart:'🌟 Chart + Reading',btnDaily:'🌅 Daily Fortune',
+    loading:'Reading your destiny...',statUsers:'users',statCalls:'readings',
+    tabChart:'🌟 Chart',tabAi:'📖 Reading',tabDaxian:'⏳ Decade',tabDaily:'🌅 Daily',
+    chartTitle:'🌟 Chart',aiTitle:'📖 Chart Reading',previewBadge:'🔒 Free Preview',
+    pdfBtn:'📥 Download PDF Report',daxianTitle:'⏳ Current Decade',dailyDate:'Loading...',
+    dailyPreview:'🔒 Free daily preview · 1 per day',
+    refund:'💰 30-day full refund · Risk-free',disclaimer:'⚠️ For entertainment only, not professional advice',
+    feedback:'💬 User Testimonials',shareLine:'💬 Share on LINE',shareWA:'📱 Share on WhatsApp',shareCopy:'🔗 Copy Link',
+    keyReady:'🔑 Key Ready',keyPlaceholder:'Enter API Key (get after purchase)',
+    otherCity:'Other City',freeText:'🌟 Free Chart Reading',freeDailyText:'🌅 Free Daily Fortune',
+    lunarPrefix:'Lunar',
+    modalTitle:'🔑 API Key Required',modalDesc:'Enter your purchased API Key to continue',
+    modalPay:'💳 Purchase Online — Key Auto-Delivered',modalPayLink:'Visit <a href="/shop.html" style="color:#e8a040;text-decoration:none">shop page</a> to pick a plan, key delivered instantly',
+    modalGotIt:'Got it',modalBuy:'Buy a Key',
+    styleModern:'✨Modern',styleClassic:'📜Classic',stylePoetic:'🌸Poetic',
+    keyBalance:'left',keyInvalid:'Invalid Key',
+    dateSep:['','','',''],
+    t0n:'🇸🇬 Singapore · Li',t0q:'"The Wuqu-Qisha career analysis was spot-on, especially the finance industry part!"',
+    t1n:'🇲🇾 Kuala Lumpur · Chen',t1q:'"Tried the free reading, it was incredibly accurate for my situation. Already bought a Key!"',
+    t2n:'🇹🇼 Taipei · Wang',t2q:'"The decade fortune analysis helped me focus on the right direction. Thank you!"',
+    t3n:'🇭🇰 Hong Kong · Cheung',t3q:'"Daily fortune was very accurate, today\'s advice helped me avoid a problem."',
+    months:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+    yearSuffix:'',monthSuffix:'',daySuffix:'',
+  }
+};
+
+function translatePage(){
+  const l=LANG[USER_LANG]||LANG['zh-Hant'];
+  // Hero
+  qs('h1').textContent=l.title;
+  qs('.sub').textContent=l.sub;
+  const fb=document.getElementById('freeBadge');if(fb&&fb.style.display!=='none')fb.textContent=l.freeBadge;
+  // Input card
+  const ci=document.querySelector('.card-title');
+  if(ci&&USER_LANG){const indicator=ci.querySelector('#keyIndicator');ci.innerHTML=l.birthInfo;if(indicator)ci.appendChild(indicator);}
+  document.getElementById('lunarDisplay').textContent=l.lunarHint;
+  const lb=document.querySelector('.time-group label');if(lb)lb.textContent='⏰ '+l.birthTime;
+  const gb=document.querySelectorAll('.gender-btn');
+  if(gb[0]){gb[0].textContent='♂ '+l.male.replace('♂ ','');}
+  if(gb[1]){gb[1].textContent='♀ '+l.female.replace('♀ ','');}
+  // City select placeholder
+  const cs=document.getElementById('citySelect');
+  if(cs&&cs.options[0])cs.options[0].textContent=l.city;
+  // API Key
+  document.getElementById('apiKeyInput').placeholder=l.keyPH||l.apiKeyPH;
+  // Buttons
+  const bp=document.querySelector('.btn-primary');if(bp)bp.textContent=l.btnChart;
+  const bd=document.querySelector('.btn-secondary.daily');if(bd)bd.textContent=l.btnDaily;
+  // Loading
+  const lt=document.getElementById('loadingText');if(lt)lt.textContent=l.loading;
+  // Stats
+  const su=document.getElementById('statUsers');if(su&&su.textContent!=='-')su.textContent=su.textContent.replace(/[^\d]/g,'')+' '+l.statUsers;
+  const sc=document.getElementById('statCalls');if(sc&&sc.textContent!=='-')sc.textContent=sc.textContent.replace(/[^\d]/g,'')+' '+l.statCalls;
+  // Result panels
+  const tabs=document.querySelectorAll('.tab');
+  if(tabs[0])tabs[0].textContent=l.tabChart;
+  if(tabs[1])tabs[1].textContent=l.tabAi;
+  if(tabs[2])tabs[2].textContent=l.tabDaxian;
+  if(tabs[3])tabs[3].textContent=l.tabDaily;
+  // Chart card title
+  const ct=document.querySelector('#chartCard .card-title');if(ct)ct.textContent=l.chartTitle;
+  // AI card title
+  const at=document.querySelector('#aiCard .card-title span:first-child');if(at)at.textContent=l.aiTitle;
+  const pb=document.getElementById('previewBadge');if(pb)pb.innerHTML=l.previewBadge;
+  // PDF buttons
+  document.querySelectorAll('#pdfBtnPaipan button,#pdfBtnDaxian button,#pdfBtnDaily button').forEach(b=>{b.textContent=l.pdfBtn});
+  // Daxian
+  const dx=document.querySelector('#panelDaxian .card-title span');if(dx)dx.textContent=l.daxianTitle;
+  // Daily
+  const dd=document.getElementById('dailyDate');
+  if(dd&&dd.textContent===('加载中...'||'Loading...'))dd.textContent=l.dailyDate;
+  const dpb=document.getElementById('dailyPreviewBadge');if(dpb&&dpb.style.display!=='none')dpb.innerHTML=l.dailyPreview;
+  // Footer
+  const rf=document.querySelectorAll('[style*="text-align:center"]');
+  rf.forEach(el=>{
+    if(el.textContent.includes('30天')||el.textContent.includes('refund'))el.textContent=l.refund;
+    if(el.textContent.includes('仅供娱乐')||el.textContent.includes('entertainment'))el.textContent=l.disclaimer;
+  });
+  // Feedback
+  const fbt=document.querySelector('.testimonial-wrap')?.previousElementSibling;
+  if(fbt)fbt.textContent=l.feedback;
+  // Testimonial quotes
+  [0,1,2,3].forEach(i=>{
+    const n=document.querySelector(`[data-ti="${i}n"]`);if(n)n.textContent=l['t'+i+'n'];
+    const q=document.querySelector(`[data-ti="${i}q"]`);if(q)q.textContent=l['t'+i+'q'];
+  });
+  // Share buttons
+  const sbtns=document.querySelectorAll('[style*="display:flex"][style*="justify-content:center"] button');
+  if(sbtns[0])sbtns[0].textContent=l.shareLine;
+  if(sbtns[1])sbtns[1].textContent=l.shareWA;
+  if(sbtns[2])sbtns[2].textContent=l.shareCopy;
+  // Key indicator
+  const ki=document.getElementById('keyIndicator');
+  if(ki&&ki.textContent.includes('Key'))ki.textContent=l.keyReady;
+  // Modal
+  const km=document.getElementById('keyModal');
+  if(km){
+    const h2=km.querySelector('h2');if(h2)h2.textContent=l.modalTitle;
+    const p=km.querySelector('p');if(p)p.textContent=l.modalDesc;
+    const payDivs=km.querySelectorAll('[style*="text-align:center"]');
+    if(payDivs[0])payDivs[0].innerHTML=l.modalPay;
+    if(payDivs[1])payDivs[1].innerHTML=l.modalPayLink;
+    const btns=km.querySelectorAll('.btn');
+    if(btns[0])btns[0].textContent=l.modalGotIt;
+    if(btns[1])btns[1].textContent=l.modalBuy;
+  }
+  // Date separators
+  const seps=document.querySelectorAll('.date-sep');
+  if(seps[0])seps[0].textContent=l.dateSep[1];
+  if(seps[1])seps[1].textContent=l.dateSep[2];
+  if(seps[2])seps[2].textContent=l.dateSep[3];
+  // Rebuild date selects
+  rebuildDateSelects();
+  // HTML lang
+  document.documentElement.lang=USER_LANG==='en'?'en':USER_LANG==='zh-Hans'?'zh-CN':'zh-TW';
+}
+function rebuildDateSelects(){
+  const l=LANG[USER_LANG]||LANG['zh-Hant'];
+  const sy=document.getElementById('selYear'),sm=document.getElementById('selMonth'),sd=document.getElementById('selDay');
+  if(!sy||!sm||!sd)return;
+  const selY=sy.value,selM=sm.value,selD=sd.value;
+  const now=new Date();
+  sy.innerHTML='';sm.innerHTML='';sd.innerHTML='';
+  for(let y=now.getFullYear();y>=1900;y--){const o=document.createElement('option');o.value=y;o.textContent=y+l.yearSuffix;if(y==selY)o.selected=true;sy.appendChild(o)}
+  for(let m=1;m<=12;m++){const o=document.createElement('option');o.value=m;o.textContent=l.months[m-1];if(m==selM)o.selected=true;sm.appendChild(o)}
+  for(let d=1;d<=31;d++){const o=document.createElement('option');o.value=d;o.textContent=d+l.daySuffix;if(d==selD)o.selected=true;sd.appendChild(o)}
+}
+function qs(s){return document.querySelector(s)}
+
+function setLang(l){
+  USER_LANG=l;
+  localStorage.setItem('zw_lang',l);
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.classList.toggle('active',b.dataset.lang===l);
+  });
+  translatePage();
+}
+
+const days=['日','一','二','三','四','五','六'];
+const HOURS=['子(23-1)','丑(1-3)','寅(3-5)','卯(5-7)','辰(7-9)','巳(9-11)','午(11-13)','未(13-15)','申(15-17)','酉(17-19)','戌(19-21)','亥(21-23)'];
+const HM=[23,1,3,5,7,9,11,13,15,17,19,21];
+let selH=6; let gender='male'; let selStyle='modern';
+
+(function(){
+  const sy=document.getElementById('selYear'),sm=document.getElementById('selMonth'),sd=document.getElementById('selDay');
+  const now=new Date();
+  rebuildDateSelects();
+  const tg=document.getElementById('timeGrid');
+  HOURS.forEach((h,i)=>{const d=document.createElement('div');d.className='time-btn'+(i===selH?' sel':'');d.textContent=h;d.onclick=function(){document.querySelectorAll('.time-btn').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');selH=i};tg.appendChild(d)});
+  document.querySelectorAll('.gender-btn')[0].classList.add('sel');
+})();
+
+function selectGender(el){document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');gender=el.dataset.gender}
+function selG(v){gender=v;document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('sel'));document.querySelector('.gender-btn[onclick*="'+v+'"]')?.classList.add('sel')}
+function selectStyle(el){document.querySelectorAll('.style-pill').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');selStyle=el.dataset.style}
+
+(async function(){
+  try{const r=await fetch(API+'/v1/stats');const d=await r.json();
+    if(d.success){document.getElementById('statUsers').textContent=d.data.total_keys;document.getElementById('statCalls').textContent=d.data.total_calls}
+  }catch(e){}
+})();
+
+(function(){
+  const p=new URLSearchParams(window.location.search);
+  if(p.get('key')){
+    USER_KEY=p.get('key');
+    document.getElementById('keyIndicator').textContent=LANG[USER_LANG].keyReady;
+    document.getElementById('keyIndicator').style.display='block';
+  }else{
+    const saved=localStorage.getItem('zw_last_key');
+    if(saved){USER_KEY=saved}else{
+      USER_KEY='_FREE_';
+      document.getElementById('freeBadge').style.display='inline-block';
+      document.querySelector('.btn-primary').textContent=LANG[USER_LANG].freeText;
+      document.querySelector('.btn-secondary').textContent=LANG[USER_LANG].freeDailyText;
+    }
+  }
+  const ki=document.getElementById('apiKeyInput');
+  if(USER_KEY&&USER_KEY!=='_FREE_'){ki.value=USER_KEY;checkKeyBalance(USER_KEY)}
+  ki.addEventListener('input',function(){
+    const v=this.value.trim();USER_KEY=v;
+    if(v){localStorage.setItem('zw_last_key',v);checkKeyBalance(v)}
+    else{localStorage.removeItem('zw_last_key');document.getElementById('keyStatus').textContent=''}
+  });
+})();
+
+(function(){const saved=localStorage.getItem('zw_lang');if(saved)setLang(saved);})();
+
+async function checkKeyBalance(k){
+  const s=document.getElementById('keyStatus');
+  if(!k){s.textContent='';return}
+  s.textContent='⏳';
+  try{
+    const r=await fetch(API+'/key/balance',{headers:{'Authorization':'Bearer '+k}});
+    const d=await r.json();
+    if(d.success){
+      s.textContent='✅ '+d.balance+' '+LANG[USER_LANG].keyBalance;
+      // Revert button text from free to paid mode
+      document.querySelector('.btn-primary').textContent=LANG[USER_LANG].btnChart;
+      document.querySelector('.btn-secondary').textContent=LANG[USER_LANG].btnDaily;
+      document.getElementById('freeBadge').style.display='none';
+      document.getElementById('previewBadge')&&(document.getElementById('previewBadge').style.display='none');
+      document.getElementById('dailyPreviewBadge')&&(document.getElementById('dailyPreviewBadge').style.display='none');
+    }else{s.textContent='❌ '+LANG[USER_LANG].keyInvalid}
+  }catch(e){s.textContent='❌'}
+}
+
+function stylePillsHTML(current,type,fnName){
+  const l=LANG[USER_LANG]||LANG['zh-Hant'];
+  const styles=[{key:'modern',label:l.styleModern},{key:'classical',label:l.styleClassic},{key:'poetic',label:l.stylePoetic}];
+  return '<div style="margin-top:12px;display:flex;gap:6px;justify-content:center">'+styles.map(s=>'<span class="style-pill'+(s.key===current?' sel':'')+'" onclick="'+fnName+'(\''+s.key+'\')" style="font-size:10px;cursor:pointer">'+s.label+'</span>').join('')+'</div>';
+}
+
+async function switchStyle(s){selStyle=s;const lp=window._lastPaipan;if(!lp)return;lp.style=s;const body={...lp,language:USER_LANG};try{const r=await fetch(API+'/v1/paipan',{method:'POST',headers:{'Authorization':'Bearer '+USER_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(d.data?.reading){const ac=document.getElementById('aiContent');const isFree=USER_KEY==='_FREE_';ac.innerHTML='<div class="rbox">'+d.data.reading+'</div>'+(isFree?'':stylePillsHTML(s,'paipan','switchStyle'));document.querySelectorAll('.style-pill').forEach(b=>b.classList.toggle('sel',b.dataset.style===s))}}catch(e){}}
+async function switchDailyStyle(s){selStyle=s;const ld=window._lastDaily;if(!ld)return;ld.style=s;const body={...ld,language:USER_LANG};try{const r=await fetch(API+'/v1/daily',{method:'POST',headers:{'Authorization':'Bearer '+USER_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(d.data?.reading){const dc=document.getElementById('dailyContent');dc.innerHTML=d.data.reading+stylePillsHTML(s,'daily','switchDailyStyle');document.querySelectorAll('.style-pill').forEach(b=>b.classList.toggle('sel',b.dataset.style===s))}}catch(e){}}
+
+function showBuyModal(){document.getElementById('keyModal').classList.add('show');}
+
+function goDaxian(){document.getElementById('dxDetail').innerHTML='';document.getElementById('dxAiReading').innerHTML='';go('daxian');}
+
+function switchTab(t){
+  if(t==='daily'&&!document.getElementById('dailyContent').innerHTML){go('daily');return}
+  if(t==='daxian'&&USER_KEY){document.getElementById('dxAiReading').innerHTML='<div style="text-align:center;padding:20px;color:#5a5a7a;font-size:13px">⏳ 大限分析加载中...</div>';go('daxian');return}
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.tab[data-tab="'+t+'"]').classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
+  document.getElementById('panel'+{'chart':'Chart','daxian':'Daxian','daily':'Daily'}[t]).classList.add('show');
+}
+
+async function go(mode){
+  if(!USER_KEY){
+    const iv=document.getElementById('apiKeyInput').value.trim();
+    if(iv&&iv!=='_FREE_'){USER_KEY=iv;localStorage.setItem('zw_last_key',iv)}
+    else{document.getElementById('keyModal').classList.add('show');return}
+  }
+  const ld=document.getElementById('loading'),r=document.getElementById('result');
+  const lt={'paipan':'🔮 命盘推演中...','daily':'🌅 能量分析中...','daxian':'⏳ 大限解析中...'};
+  document.getElementById('loadingText').textContent=lt[mode]||'⏳ 加载中...';
+  ld.classList.add('show');r.style.display='none';
+  const y=parseInt(document.getElementById('selYear').value),mo=parseInt(document.getElementById('selMonth').value),d=parseInt(document.getElementById('selDay').value);
+  const body={year:y,month:mo,day:d,hour:HM[selH],gender,style:selStyle};
+  const city=document.getElementById('citySelect').value;
+  if(city)body.city=city;
+  body.language=USER_LANG;
+  try{
+    const epMap={'paipan':USER_KEY==='_FREE_'?'/v1/paipan-free':'/v1/paipan','daily':USER_KEY==='_FREE_'?'/v1/daily-free':'/v1/daily','daxian':USER_KEY==='_FREE_'?'/v1/daxian-free':'/v1/daxian'};
+    const ep=epMap[mode]||'/v1/paipan';
+    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),35000);
+    const res=await fetch(API+ep,{method:'POST',headers:{'Authorization':'Bearer '+USER_KEY,'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctl.signal});
+    clearTimeout(to);
+    const dt=await res.json();ld.classList.remove('show');r.style.display='block';
+    if(!dt.success){if(res.status===402||(dt.detail&&dt.detail.includes('balance'))){showBuyModal();return}alert('错误: '+(typeof dt.detail==='string'?dt.detail:typeof dt.error==='string'?dt.error:JSON.stringify(dt.detail||dt.error||'未知')));return}
+    if(dt.data?.free_used){showBuyModal();return}
+    if(mode==='paipan'){
+      if(dt.data.chart){renderChart(dt.data.chart);if(USER_KEY==='_FREE_')document.getElementById('previewBadge').style.display='inline-flex'}
+      window._lastPaipan={year:y,month:mo,day:d,hour:HM[selH],gender,style:selStyle};
+      if(city)window._lastPaipan.city=city;
+      const ac=document.getElementById('aiContent');
+      if(dt.data.reading){
+        document.getElementById('aiCard').style.display='block';
+        const isFree=USER_KEY==='_FREE_';
+        ac.innerHTML='<div class="rbox">'+dt.data.reading+'</div>'+(isFree?renderPremiumUnlock():stylePillsHTML(selStyle,'paipan','switchStyle'))+'<div style="margin-top:14px;text-align:center"><span class="style-pill" onclick="goDaxian()" style="cursor:pointer;border-color:rgba(240,184,80,.15);color:#e89830">⏳ 查看当前十年大限分析</span><div style="font-size:10px;color:#4a3a5a;margin-top:5px">消耗1次调用次数</div></div>';
+        if(!isFree)document.getElementById('pdfBtnPaipan').style.display='block';
+        document.getElementById('dxDetail').innerHTML='';document.getElementById('dxAiReading').innerHTML='';
+      }
+      switchTab('chart');
+    }else if(mode==='daxian'){
+      const dx=dt.data.daxian||{};
+      const el=document.getElementById('dxDetail');
+      const jiC=dx.吉星&&dx.吉星.length?dx.吉星.join(' '):'无',shaC=dx.煞星&&dx.煞星.length?dx.煞星.join(' '):'无',zhongC=dx.中性星&&dx.中性星.length?dx.中性星.join(' '):'无';
+      const sm={'大吉':'🟢大吉','吉':'🟢吉','平':'🟡平','凶':'🔴凶'};
+      el.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+        '<div class="dx-stat"><div class="dx-l">当前年龄</div><div class="dx-v">'+dx.当前年龄+'岁</div></div>'+
+        '<div class="dx-stat"><div class="dx-l">大限范围</div><div class="dx-v">'+dx.大限年龄范围+'</div></div>'+
+        '<div class="dx-stat"><div class="dx-l">大限宫位</div><div class="dx-v gold">'+dx.当前大限+'('+dx.宫位地支+'宫)</div></div>'+
+        '<div class="dx-stat"><div class="dx-l">吉凶评价</div><div class="dx-v" style="font-size:15px">'+(sm[dx.吉凶评价]||'🟡平')+'</div></div></div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'+
+        '<div class="dx-tag" style="border-color:rgba(140,200,80,.2)"><div class="dx-tl" style="color:#90c060">🌟吉星</div><div class="dx-tv">'+jiC+'</div></div>'+
+        '<div class="dx-tag" style="border-color:rgba(200,80,60,.2)"><div class="dx-tl" style="color:#dd6644">💥煞星</div><div class="dx-tv">'+shaC+'</div></div>'+
+        '<div class="dx-tag" style="border-color:rgba(200,150,80,.2)"><div class="dx-tl" style="color:#d0a050">⚖️中性</div><div class="dx-tv">'+zhongC+'</div></div></div>';
+      const ac=document.getElementById('dxAiReading');
+      if(dt.data.reading&&typeof dt.data.reading==='string'&&dt.data.reading.length>0){
+        ac.innerHTML='<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(240,184,80,.1)"><div class="card-title" style="font-size:13px;color:#e89830;margin-bottom:10px">📖大限详细解读</div><div class="rbox">'+dt.data.reading+'</div></div>';
+        document.getElementById('pdfBtnDaxian').style.display='block';
+      }else{ac.innerHTML='<div style="text-align:center;padding:20px;color:#5a5a7a;font-size:13px">解读暂时不可用</div>'}
+      switchTab('daxian');
+    }else{
+      const d2=dt.data;const now=new Date();
+      window._lastDaily={year:y,month:mo,day:d,hour:HM[selH],gender,style:selStyle};
+      if(city)window._lastDaily.city=city;
+      document.getElementById('dailyDate').textContent=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 星期'+['日','一','二','三','四','五','六'][now.getDay()];
+      document.getElementById('dailyLunar').textContent=(d2.context.农历||'')+' · '+(d2.context.干支||'');
+      const isFree=USER_KEY==='_FREE_';
+      let dc=d2.reading||'暂无解读';
+      if(!isFree)dc+=stylePillsHTML(selStyle,'daily','switchDailyStyle');
+      document.getElementById('dailyContent').innerHTML=dc;
+      if(!isFree)document.getElementById('pdfBtnDaily').style.display='block';
+      if(USER_KEY==='_FREE_')document.getElementById('dailyPreviewBadge').style.display='flex';
+      switchTab('daily');
+    }
+    document.getElementById('tabBar').style.display='flex';
+    window.scrollTo({top:r.offsetTop-16,behavior:'smooth'});
+  }catch(e){
+    ld.classList.remove('show');r.style.display='block';
+    document.getElementById('tabBar').style.display='flex';
+    document.getElementById('aiContent').innerHTML='<div style="text-align:center;padding:20px;color:#dd8866;font-size:13px">❌ 网络错误: '+e.message+'</div>';
+    document.getElementById('aiCard').style.display='block';
+  }
+}
+
+function renderChart(d){
+  if(!d||!d.命盘){return}
+  const grid=document.getElementById('chartGrid');grid.innerHTML='';
+  document.getElementById('chartCard').style.display='block';
+  const order=['命宫','兄弟宫','夫妻宫','子女宫','财帛宫','疾厄宫','迁移宫','交友宫','官禄宫','田宅宫','福德宫','父母宫'];
+  function makeCell(name){
+    const p=d.命盘[name]||{};const div=document.createElement('div');div.className='cell';
+    const n=document.createElement('div');n.className='palace-name';n.textContent=name;div.appendChild(n);
+    if(p.主星&&p.主星.length){p.主星.forEach(s=>{const el=document.createElement('div');el.className='main-star'+(name==='命宫'||name==='财帛宫'?' highlight':'');el.textContent=s;div.appendChild(el)})}
+    if(p.辅星&&p.辅星.length){const el=document.createElement('div');el.className='minor-star';el.textContent=p.辅星.join(' ');div.appendChild(el)}
+    if(p.四化&&p.四化.length){const el=document.createElement('div');el.className='hua';el.textContent=p.四化.join(' ');div.appendChild(el)}
+    return div;
+  }
+  grid.appendChild(makeCell('命宫'));
+  grid.appendChild(makeCell('父母宫'));
+  grid.appendChild(makeCell('福德宫'));
+  grid.appendChild(makeCell('田宅宫'));
+  grid.appendChild(makeCell('兄弟宫'));
+  grid.appendChild(makeCell('夫妻宫'));
+  grid.appendChild(makeCell('子女宫'));
+  grid.appendChild(makeCell('财帛宫'));
+  // Center
+  const ci=d.基本信息||{};const cv=document.createElement('div');cv.className='cell main';
+  cv.innerHTML='<div class="center-box"><div class="bazi">'+(ci.八字||'--')+'</div><div class="meta">'+(ci.五行局||'')+'<br>命主:'+(ci.命主||'--')+' 身主:'+(ci.身主||'--')+'<br>起运:'+(ci.起运||'--')+'</div><div class="full-info">'+(ci.生辰||'')+' · '+(ci.农历||'')+'</div></div>';
+  grid.appendChild(cv);
+  grid.appendChild(makeCell('疾厄宫'));
+  grid.appendChild(makeCell('迁移宫'));
+  grid.appendChild(makeCell('交友宫'));
+  grid.appendChild(makeCell('官禄宫'));
+}
+
+// ─── Share ──
+function shareTo(platform){
+  const url=window.location.origin+'/';
+  const text='🔮 紫微斗數命盤解析';
+  switch(platform){
+    case 'line':window.open('https://line.me/R/msg/text/?'+encodeURIComponent(text+' '+url),'_blank');break;
+    case 'whatsapp':window.open('https://wa.me/?text='+encodeURIComponent(text+' '+url),'_blank');break;
+    case 'copy':navigator.clipboard.writeText(url).then(()=>{const e=document.createElement('div');e.textContent='✅ 已複製';e.style.cssText='position:fixed;bottom:50%;left:50%;transform:translateX(-50%);background:#3a2a1e;color:#e8b860;padding:10px 20px;border-radius:8px;font-size:13px;z-index:9999';document.body.appendChild(e);setTimeout(()=>e.remove(),1800)});break;
+  }
+}
+
+// ─── PDF Download ──
+function downloadPDF(type){
+  const TITLE={'paipan':'命盤解讀','daxian':'十年大限分析','daily':'每日能量指引'}[type]||'紫微斗數解讀';
+  const contentEl={'paipan':'aiContent','daxian':'dxAiReading','daily':'dailyContent'}[type];
+  const text=document.getElementById(contentEl).innerText||document.getElementById(contentEl).textContent;
+  if(!text||text.length<10){alert('暂无可下载内容');return}
+  const {jsPDF}=window.jspdf;const doc=new jsPDF('p','mm','a4');
+  const w=doc.internal.pageSize.getWidth(),m=16;
+  doc.setFillColor(10,10,20);doc.rect(0,0,w,38,'F');
+  doc.setFontSize(16);doc.setTextColor(196,160,255);
+  doc.text('🔮 紫微鬥數 · '+TITLE,w/2,22,{align:'center'});
+  doc.setDrawColor(123,104,238);doc.setLineWidth(0.5);doc.line(m,40,w-m,40);
+  let y=52;doc.setFontSize(9);doc.setTextColor(200,190,220);
+  const lines=doc.splitTextToSize(text,w-m*2);
+  for(let l of lines){if(y>260){doc.addPage();y=20;doc.setFontSize(9);doc.setTextColor(200,190,220)}doc.text(l,m,y);y+=4.5}
+  if(y>265)doc.addPage();y=Math.max(y+8,267);
+  doc.setDrawColor(123,104,238);doc.setLineWidth(0.3);doc.line(m,y-2,w-m,y-2);
+  doc.setFillColor(18,18,30);doc.rect(m,y,w-m*2,28,'F');
+  doc.setFontSize(11);doc.setTextColor(196,160,255);doc.text('🔮 紫微斗數 API',w/2,y+8,{align:'center'});
+  doc.setFontSize(7);doc.setTextColor(100,90,130);doc.text('解鎖您的命盤密碼 · AI 驅動的命理解讀',w/2,y+15,{align:'center'});
+  doc.setFontSize(7);doc.setTextColor(123,104,238);doc.text('🌐 '+window.location.origin,w/2,y+22,{align:'center'});
+  doc.setFontSize(6);doc.setTextColor(60,50,80);doc.text('⚠️ 内容仅供娱乐参考，不构成专业建议',w/2,y+32,{align:'center'});
+// ── Premium Unlock ──
+const PACKAGE_LIST=[
+  {id:'starter',name:'🚀 入门包',detail:'10 次调用',price:'$9.9'},
+  {id:'standard',name:'⭐ 标准包',detail:'50 次调用 · 最受欢迎',price:'$29.9'},
+  {id:'pro',name:'🔥 专业包',detail:'200 次调用',price:'$99'},
+  {id:'business',name:'💼 企业包',detail:'1000 次调用',price:'$299'},
+];
+let selBuyPkg='standard';
+function renderPremiumUnlock(){
+  const pkgUrl='/shop.html?ref=unlock';
+  const catIcons={'流年运程':'🔥','一生运程':'🌌','格局解读':'🔮','婚姻情感':'💕','事业财运':'💼','健康桃花':'🌸','财运预警':'⚡','姻缘配对':'💞'};
+  const catPreviews={
+    '流年运程':'2026年丙午火旺之年，对命盘格局会产生深刻影响……',
+    '一生运程':'从命宫主星看一生运势起伏，天机主智……',
+    '格局解读':'命宫无辅星、对宫迁移宫……',
+    '婚姻情感':'夫妻宫星曜配置显示……',
+    '事业财运':'财帛宫+官禄宫综合分析……',
+    '健康桃花':'疾厄宫+福德宫暗示……',
+    '财运预警':'大限中财帛宫逢……',
+    '姻缘配对':'身宫+夫妻宫四化……',
+  };
+  const cats=Object.keys(catIcons);
+  let cards='';
+  for(const c of cats){
+    cards+=`<div class="cat-card" onclick="openBuyModal()">
+      <div class="cat-icon">${catIcons[c]}</div>
+      <div class="cat-title">${c}</div>
+      <div class="cat-preview">${catPreviews[c]}</div>
+      <div class="cat-lock">🔒 已锁定</div>
+    </div>`;
+  }
+  return `<div class="premium-unlock">
+    <div class="urgency"><span>⚡ 命盘显示，2026年你的感情、事业、财运将出现重要变动</span></div>
+    <div class="cat-grid">${cards}</div>
+    <div class="unlock-cta">
+      <div class="unlock-value">📖 3000+字深度解析 · 完整命盘报告</div>
+      <div class="unlock-sub">包含流年、大限、12宫位全方位解读 · 根据所填城市提供本地化建议</div>
+      <button class="unlock-btn" onclick="openBuyModal()">✨ 立即解锁完整解读</button>
+    </div>
+  </div>`;
+}
+function openBuyModal(){
+  document.getElementById('buyOverlay').classList.add('show');
+  document.getElementById('buyResult').classList.remove('show');
+  document.getElementById('buySubmitBtn').style.display='block';
+  renderBuyPlans();
+}
+function closeBuyModal(){
+  document.getElementById('buyOverlay').classList.remove('show');
+}
+function renderBuyPlans(){
+  const el=document.getElementById('buyPlanList');
+  el.innerHTML=PACKAGE_LIST.map(p=>`<div class="plan-card${p.id==='standard'?' popular':''}" onclick="selectBuyPlan('${p.id}')">
+    <div>
+      <div class="plan-name">${p.name}</div>
+      <div class="plan-detail">${p.detail}</div>
+    </div>
+    <div class="plan-price">${p.price}</div>
+  </div>`).join('');
+}
+function selectBuyPlan(id){
+  selBuyPkg=id;
+  document.querySelectorAll('.plan-card').forEach((el,i)=>{
+    el.classList.toggle('selected',PACKAGE_LIST[i].id===id);
+  });
+}
+async function processBuy(){
+  const btn=document.getElementById('buySubmitBtn');
+  btn.textContent='⏳ 处理中...';btn.disabled=true;
+  try{
+    const res=await fetch(API+'/v1/checkout/mock',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({package:selBuyPkg}),
+    });
+    const dt=await res.json();
+    if(!dt.success||!dt.data||!dt.data.key)throw new Error(dt.error||'购买失败');
+    const key=dt.data.key;
+    document.getElementById('buyKeyDisplay').textContent=key;
+    document.getElementById('buyResult').classList.add('show');
+    btn.style.display='none';
+    window._newKey=key;
+  }catch(e){
+    alert('购买失败: '+e.message);
+    btn.textContent='✨ 立即获取完整解读';btn.disabled=false;
+  }
+}
+function useNewKey(){
+  USER_KEY=window._newKey||'';
+  if(USER_KEY){
+    document.getElementById('keyIndicator').style.display='block';
+    document.getElementById('displayKey').textContent=USER_KEY;
+    localStorage.setItem('zw_api_key',USER_KEY);
+  }
+  closeBuyModal();
+  // Re-run the current tab
+  const tab=document.querySelector('.tab.active');
+  if(tab&&tab.dataset.tab==='daily'){go('daily')}
+  else if(tab&&tab.dataset.tab==='daxian'){goDaxian()}
+  else{go('paipan')}
+}
+
+  doc.save('ziwei-'+type+'-'+new Date().toISOString().slice(0,10)+'.pdf');
+}
+</script>
+
+<!-- Buy Modal -->
+<div class="buy-overlay" id="buyOverlay">
+  <div class="buy-modal">
+    <button class="close-btn" onclick="closeBuyModal()">✕</button>
+    <h2>⚡ 解锁完整命盘解读</h2>
+    <div class="sub">选择套餐后你的解读将立即解锁</div>
+    <div class="buy-plan" id="buyPlanList"></div>
+    <button class="buy-submit" id="buySubmitBtn" onclick="processBuy()">✨ 立即获取完整解读</button>
+    <div class="buy-result" id="buyResult">
+      <div style="font-size:32px;margin-bottom:8px">🎉</div>
+      <div style="font-size:14px;color:#e8b860;font-weight:600;margin-bottom:4px">购买成功！Key 已自动激活</div>
+      <div class="key-value" id="buyKeyDisplay"></div>
+      <div class="key-note">点击下方按钮，用 Key 解锁完整解读</div>
+      <button class="buy-submit" onclick="useNewKey()" style="margin-top:10px">🔑 使用此 Key 解锁</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5545263418745440" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">紫微斗数 · 解锁你的命盘</title>
+<meta name="description" content="購買紫微斗數 API Key 套餐。探運包、知命包、掌運包、天命包，含命盤解讀與每日運勢推播。PayPal 支付，即時開通。">
+<link rel="canonical" href="https://ziweiapi.site/shop.html">
+<meta property="og:title" content="紫微斗數 · 解鎖你的命盤">
+<meta property="og:description" content="購買紫微斗數 API Key 套餐，解鎖完整命盤解讀。">
+<meta property="og:url" content="https://ziweiapi.site/shop.html">
+<meta property="og:image" content="https://ziweiapi.site/og-image.svg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+#splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#1a1210;color:#e8b860;font-size:14px;transition:opacity .4s}
+#splash.hide{opacity:0;pointer-events:none}
+.spinner{width:32px;height:32px;border:3px solid #3a2a1e;border-top-color:#e8b860;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;
+  background:#1a1210;color:#f0e0c8;min-height:100vh
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(1px 1px at 10%20%,rgba(255,240,220,.3),transparent),
+             radial-gradient(1px 1px at 30%60%,rgba(255,240,220,.2),transparent),
+             radial-gradient(1px 1px at 50%10%,rgba(255,240,220,.25),transparent),
+             radial-gradient(1.5px 1.5px at 85%65%,rgba(240,192,96,.2),transparent),
+             radial-gradient(1.5px 1.5px at 25%55%,rgba(232,160,64,.2),transparent);
+  pointer-events:none;z-index:0
+}
+body::after{
+  content:'';position:fixed;top:50%;left:50%;
+  width:700px;height:700px;margin:-350px 0 0 -350px;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent,rgba(232,160,64,.04),transparent 30%,rgba(232,160,64,.02),transparent 60%,rgba(232,160,64,.03),transparent);
+  pointer-events:none;z-index:0;animation:bgSpin 40s linear infinite;will-change:transform
+}
+@keyframes bgSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+.container{max-width:960px;margin:0 auto;padding:20px;position:relative;z-index:1}
+
+/* ── Hero ── */
+.hero{text-align:center;padding:36px 0 20px}
+.hero h1{
+  font-family:'PingFang SC','Microsoft YaHei',serif;font-size:34px;font-weight:900;
+  background:linear-gradient(135deg,#e0c8ff,#e8a040,#4a3aa0);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px
+}
+.hero .sub{color:#9a7850;font-size:14px;margin-top:8px;line-height:1.6}
+.hero .sub strong{color:#e8b860;font-weight:500}
+
+/* ── Stats row ── */
+.stats-row{display:flex;gap:10px;margin-bottom:24px;justify-content:center}
+.stat-pill{
+  background:linear-gradient(135deg,rgba(30,22,18,.95),rgba(20,14,10,.95));
+  border:1px solid #3a2a1e;border-radius:12px;
+  padding:14px 10px;text-align:center;flex:1;min-width:0;
+  transition:all .3s ease;position:relative;overflow:hidden
+}
+.stat-pill::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(232,160,64,.2),transparent)
+}
+.stat-pill:hover{border-color:rgba(232,160,64,.25);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.stat-pill .num{font-size:24px;font-weight:700;color:#f0c060;margin-bottom:3px;line-height:1}
+.stat-pill .lbl{font-size:11px;color:#b09878;line-height:1.3;letter-spacing:.3px}
+
+/* ── Pricing ── */
+.section-title{font-size:16px;color:#e8b860;letter-spacing:2px;margin:0 0 14px;display:flex;align-items:center;gap:8px}
+.pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:30px}
+
+.card{
+  background:linear-gradient(135deg,rgba(50,32,20,.93),rgba(30,18,10,.93));
+  border:1px solid rgba(232,160,64,.15);border-radius:16px;
+  padding:22px 20px;text-align:center;cursor:pointer;
+  transition:all .3s;position:relative;overflow:hidden
+}
+.card:hover{border-color:rgba(232,160,64,.4);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.card.selected{border-color:#e8a040;box-shadow:0 0 30px rgba(232,160,64,.2)}
+.card.premium{
+  border:1px solid transparent;
+  background:
+    linear-gradient(135deg,rgba(50,20,10,.95),rgba(20,8,2,.95)) padding-box,
+    linear-gradient(135deg,#e8a040,#f0d080,#d4a030,#e8a040) border-box;
+  background-size:100% 100%,300% 100%;
+  animation:premiumBorder 4s ease-in-out infinite;
+  box-shadow:0 0 20px rgba(232,160,64,.08),0 0 40px rgba(232,160,64,.04);
+  position:relative;overflow:hidden;will-change:transform,box-shadow
+}
+.card.premium::before{
+  content:'';position:absolute;top:-60%;left:-60%;
+  width:220%;height:220%;
+  background:linear-gradient(45deg,transparent 35%,rgba(255,215,0,.04) 45%,rgba(255,215,0,.06) 50%,rgba(255,215,0,.04) 55%,transparent 65%);
+  animation:premiumShine 5s ease-in-out infinite;
+  pointer-events:none
+}
+@keyframes premiumBorder{0%,100%{background-position:0 0,0% 50%}50%{background-position:0 0,100% 50%}}
+@keyframes premiumShine{0%{transform:translateX(-40%) translateY(-40%) rotate(35deg)}50%{transform:translateX(10%) translateY(10%) rotate(35deg)}100%{transform:translateX(-40%) translateY(-40%) rotate(35deg)}}
+.card.premium:hover{
+  box-shadow:0 0 40px rgba(232,160,64,.2),0 0 80px rgba(232,160,64,.1);
+  transform:translateY(-4px)
+}
+.card.premium .price{text-shadow:0 0 20px rgba(192,96,64,.3)}
+.card.premium .name{background:linear-gradient(135deg,#f0d080,#e8a040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+.card.premium .buy-btn{background:linear-gradient(135deg,rgba(232,160,64,.15),rgba(212,160,48,.1));border-color:#e8a040;color:#f0d080;font-weight:600}
+.card.premium .buy-btn:hover{background:linear-gradient(135deg,rgba(232,160,64,.25),rgba(212,160,48,.2))}
+.card.popular::before{
+  content:'推荐';position:absolute;top:12px;right:-24px;
+  background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;
+  font-size:11px;padding:2px 30px;transform:rotate(45deg);letter-spacing:1px
+}
+.card .icon{font-size:28px;margin-bottom:6px}
+.card .name{font-size:12px;font-weight:500;color:#9a7850;letter-spacing:1px;margin-bottom:4px}
+.card .value-tag{
+  font-size:15px;font-weight:700;color:#f0e0c8;
+  margin:0 0 4px;line-height:1.3;letter-spacing:.5px
+}
+.card .quota{font-size:13px;font-weight:600;color:#c8b898;margin-bottom:4px}
+.card .df-badge{
+  font-size:10px;color:#4ade80;background:rgba(74,222,128,.08);
+  border:1px solid rgba(74,222,128,.15);border-radius:20px;
+  padding:2px 10px;display:inline-block;margin:2px 0 4px;letter-spacing:.5px
+}
+.card .df-badge.highlight{
+  color:#22f088;background:rgba(34,240,136,.12);
+  border-color:rgba(34,240,136,.3);font-size:11px;font-weight:600;
+  padding:3px 12px;box-shadow:0 0 12px rgba(34,240,136,.08);
+  animation:dfPulse 2s ease-in-out infinite;will-change:box-shadow
+}
+@keyframes dfPulse{0%,100%{box-shadow:0 0 8px rgba(34,240,136,.06)}50%{box-shadow:0 0 18px rgba(34,240,136,.15)}}
+.card .card-foot{margin-top:auto;padding-top:8px;border-top:1px solid rgba(232,160,64,.1)}
+.card .price{
+  font-size:20px;font-weight:700;margin:0 0 6px;letter-spacing:.5px
+}
+.card .price-compare{
+  font-size:11px;color:#9a7850;margin-bottom:6px;line-height:1.5
+}
+.card .price-compare s{
+  color:#b08060;font-weight:600;font-size:12px;
+  text-decoration-color:#d06060;text-decoration-thickness:2px
+}
+.card .price-compare em{
+  color:#f0b850;font-style:normal;font-weight:700;font-size:12px
+}
+.card .early-bird{
+  display:inline-block;font-size:10px;color:#ff6b35;font-weight:700;
+  background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.25);
+  border-radius:4px;padding:1px 6px;margin-left:4px;vertical-align:middle
+}
+.card .slot-counter{
+  font-size:10px;color:#dd8866;margin-bottom:4px;line-height:1.4
+}
+.card .slot-counter strong{color:#ff6b35;font-size:12px}
+.card .buy-btn{
+  display:inline-block;padding:10px 32px;border-radius:10px;
+  border:1px solid rgba(232,160,64,.3);color:#e8b860;
+  font-size:14px;font-weight:500;transition:all .3s;background:transparent
+}
+.card .buy-btn:hover{background:rgba(232,160,64,.15);border-color:#e8a040}
+
+/* ── Subscribe ── */
+.sub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:30px}
+.sub-card{
+  background:linear-gradient(135deg,rgba(50,32,20,.93),rgba(30,18,10,.93));
+  border:1px solid rgba(232,160,64,.15);border-radius:16px;
+  padding:24px 22px;text-align:center;
+  position:relative;overflow:hidden;
+  transition:all .3s
+}
+.sub-card:hover{border-color:rgba(232,160,64,.4);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.sub-card .icon{font-size:26px;margin-bottom:6px}
+.sub-card .name{font-size:12px;font-weight:500;color:#9a7850;letter-spacing:1px;margin-bottom:4px}
+.sub-card .price{font-size:18px;font-weight:600;margin:0;display:inline}
+.sub-card .per{font-size:13px;color:#9a7850;display:inline;margin-left:2px}
+.sub-card .desc{font-size:14px;color:#e0d0b8;line-height:1.4;margin:4px 0 8px;font-weight:500}
+.sub-card .sub-value{
+  font-size:15px;font-weight:700;color:#f0e0c8;
+  margin:0 0 6px;line-height:1.3;letter-spacing:.5px
+}
+.sub-card .sub-renew{font-size:11px;color:#9a7850;margin-top:2px}
+.sub-card .sub-divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(232,160,64,.12),transparent);
+  margin:8px 0 10px;border:none
+}
+.sub-card .sub-price-area{
+  display:flex;flex-direction:column;align-items:center;gap:6px
+}
+.sub-card .badge{
+  font-size:11px;color:#f0b850;background:rgba(240,184,80,.08);
+  border:1px solid rgba(240,184,80,.15);border-radius:20px;
+  padding:2px 10px;display:inline-block;margin-bottom:10px
+}
+.sub-card .sub-cta{
+  display:inline-block;padding:10px 28px;border-radius:10px;
+  background:linear-gradient(135deg,#e8a040,#d08020);
+  color:#0a0a14;font-size:14px;font-weight:600;text-decoration:none;
+  border:none;cursor:pointer;transition:all .3s;font-family:inherit
+}
+.sub-card .sub-cta:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(232,160,64,.3)}
+.sub-card.premium .sub-cta{background:linear-gradient(135deg,#f0b850,#e89830);color:#0a0a14;font-weight:700}
+.sub-card .sub-cta:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.sub-card.premium{
+  border:1px solid transparent;
+  background:
+    linear-gradient(135deg,rgba(50,20,10,.95),rgba(20,8,2,.95)) padding-box,
+    linear-gradient(135deg,#e8a040,#f0d080,#d4a030,#e8a040) border-box;
+  background-size:100% 100%,300% 100%;
+  animation:premiumBorder 4s ease-in-out infinite;
+  box-shadow:0 0 20px rgba(232,160,64,.08),0 0 40px rgba(232,160,64,.04)
+}
+.sub-card.premium .price{text-shadow:0 0 20px rgba(192,96,64,.3)}
+.sub-card.premium .name{background:linear-gradient(135deg,#f0d080,#e8a040);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+
+/* ── Subscribe form ── */
+.sub-email{
+  width:100%;padding:10px 14px;border-radius:10px;
+  border:1px solid #3a2a1e;background:#1a1210;
+  color:#f0e0c8;font-size:13px;font-family:inherit;
+  box-sizing:border-box;outline:none;transition:border-color .2s
+}
+.sub-email:focus{border-color:#e8a040}
+.sub-email::placeholder{color:#6a4a30}
+.sub-msg{font-size:11px;color:#8a7050;min-height:18px;transition:all .3s}
+.sub-msg.success{color:#64c896}
+.sub-msg.error{color:#dd8866}
+
+/* ── Features ── */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:30px}
+.feature-item{background:#1e1612;border:1px solid #3a2a1e;border-radius:12px;padding:16px;display:flex;gap:12px;align-items:flex-start}
+.feature-item .fi{font-size:22px;flex-shrink:0}
+.feature-item .ft{font-size:13px;font-weight:600;color:#f0e0c8;margin-bottom:2px}
+.feature-item .fd{font-size:11px;color:#9a7850;line-height:1.5}
+
+/* ── FAQ ── */
+.faq{margin-bottom:30px}
+.faq-item{background:#1e1612;border:1px solid #3a2a1e;border-radius:10px;padding:14px 16px;margin-bottom:6px;cursor:pointer;transition:all .2s}
+.faq-item:hover{border-color:#6a5030}
+.faq-q{font-size:13px;color:#e8d8c0;font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.faq-q .arrow{color:#9a7850;font-size:11px;transition:transform .2s}
+.faq-item.open .faq-q .arrow{transform:rotate(180deg)}
+.faq-a{display:none;font-size:12px;color:#9a7850;margin-top:8px;line-height:1.6;padding-right:20px}
+.faq-item.open .faq-a{display:block}
+
+/* ─── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;justify-content:center;align-items:center;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{
+  background:linear-gradient(135deg,#322014,#12121e);
+  border:1px solid rgba(232,160,64,.2);border-radius:20px;
+  padding:36px 32px;max-width:440px;width:90%;text-align:center;
+  animation:fadeUp .3s ease;box-shadow:0 20px 60px rgba(0,0,0,.5);position:relative
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal-close{
+  position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;
+  border:1px solid #3a2a1e;background:transparent;color:#9a7850;font-size:18px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s
+}
+.modal-close:hover{color:#e8b860;border-color:#e8a040;background:rgba(232,160,64,.1)}
+.modal h2{font-size:20px;color:#f0e0c8;margin-bottom:6px}
+.modal .sub{color:#9a7850;font-size:13px;margin-bottom:14px}
+
+.pay-info{background:#1e1612;border:1px solid #3a2a1e;border-radius:12px;padding:16px;margin-bottom:14px}
+.pay-info .price-big{font-weight:700;color:#f0c060}
+.pay-info .pkg-label{font-size:13px;color:#9a7850;margin-top:2px}
+.pay-info .order-id{font-size:11px;color:#5a4a3a;margin-top:6px;font-family:monospace}
+
+/* ── Email field ── */
+.email-box{
+  background:linear-gradient(135deg,rgba(35,22,14,.95),rgba(25,14,8,.95));
+  border:1px solid rgba(232,160,64,.18);border-radius:12px;
+  padding:14px 16px;margin-bottom:14px;text-align:left;
+  transition:border-color .3s,box-shadow .3s
+}
+.email-box:focus-within{border-color:rgba(232,160,64,.4);box-shadow:0 0 20px rgba(232,160,64,.06)}
+.email-label{font-size:11px;color:#b09878;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.email-label .icon{font-size:16px}
+.email-input{
+  width:100%;padding:11px 14px;background:#1a1210;
+  border:1px solid #3a2a1e;border-radius:8px;color:#f0e0c8;
+  font-size:14px;outline:none;box-sizing:border-box;font-family:inherit;
+  transition:border-color .3s
+}
+.email-input:focus{border-color:#e8a040}
+.email-input::placeholder{color:#5a4a3a}
+
+.pay-methods{display:flex;gap:8px;margin-bottom:14px}
+.pay-method{flex:1;padding:10px;text-align:center;border:1px solid #3a2a1e;border-radius:8px;font-size:12px;cursor:pointer;transition:all .2s;background:#1e1612;color:#9a7850}
+.pay-method.active{border-color:#e8a040;color:#f0e0c8;background:rgba(232,160,64,.1)}
+
+.qr-box{width:200px;height:200px;margin:0 auto 14px;background:#fff;border-radius:12px;padding:6px;display:flex;align-items:center;justify-content:center}
+.qr-placeholder{color:#000;font-size:12px;text-align:center;line-height:1.6}
+
+.btn-confirm{
+  padding:14px 32px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;
+  font-size:15px;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:2px;width:100%
+}
+.btn-confirm:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(232,160,64,.3)}
+.btn-confirm:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+.key-result{display:none;text-align:center;padding:10px 0}
+.key-result.show{display:block}
+.key-result .check{font-size:48px;margin-bottom:8px}
+.key-result h3{font-size:18px;color:#f0e0c8;margin-bottom:4px}
+.key-result .sub{color:#9a7850;font-size:13px;margin-bottom:14px}
+.key-box{background:#1a1210;border:1px solid #3a2a1e;border-radius:12px;padding:16px;margin-bottom:12px}
+.key-box .key-text{font-family:monospace;font-size:15px;color:#f0c060;word-break:break-all;letter-spacing:1px}
+.key-box .copy-btn{margin-top:8px;padding:6px 16px;border:1px solid #3a2a1e;border-radius:6px;background:transparent;color:#9a7850;font-size:12px;cursor:pointer}
+.key-box .copy-btn:hover{color:#e8b860;border-color:#e8a040}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-item{background:#1e1612;border:1px solid #3a2a1e;border-radius:10px;padding:10px;text-align:center}
+.stat-item .num{font-size:22px;font-weight:700;color:#f0c060}
+.stat-item .lbl{font-size:11px;color:#9a7850;margin-top:2px}
+
+.go-test-btn{
+  display:inline-block;padding:14px 32px;margin-top:12px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,#f0b850,#e89830);color:#0a0a14;
+  font-size:15px;font-weight:700;cursor:pointer;letter-spacing:2px;transition:all .3s;width:100%;
+  text-decoration:none
+}
+.go-test-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(240,184,80,.3)}
+
+/* ── Key Check ── */
+.query-section{margin-bottom:30px}
+.query-section details{
+  background:#1e1612;border:1px solid #3a2a1e;border-radius:12px;padding:14px 16px
+}
+.query-section details summary{font-size:13px;color:#e8b860;cursor:pointer;letter-spacing:1px;outline:none}
+.query-section details[open] summary{margin-bottom:12px}
+.query-row{display:flex;gap:8px}
+.query-row input{
+  flex:1;padding:10px 14px;background:#1a1210;border:1px solid #3a2a1e;
+  border-radius:8px;color:#e8d8c0;font-size:13px;font-family:monospace;outline:none
+}
+.query-row button{
+  padding:10px 20px;border:none;border-radius:8px;
+  background:linear-gradient(135deg,#3a2a1e,#2a180e);color:#e8b860;
+  cursor:pointer;font-size:13px;border:1px solid rgba(232,160,64,.2)
+}
+.query-row button:hover{border-color:#e8a040}
+
+.footer{text-align:center;padding:30px 0;color:#5a4020;font-size:12px;letter-spacing:1px}
+
+@media(max-width:600px){
+  .pricing{grid-template-columns:1fr 1fr;gap:10px}
+  .card{padding:16px 12px}
+  .card .icon{font-size:22px;margin-bottom:4px}
+  .card .name{font-size:11px}
+  .card .value-tag{font-size:13px}
+  .card .quota{font-size:12px}
+  .card .df-badge{font-size:9px;padding:1px 6px;margin:1px 0 4px}
+  .card .df-badge.highlight{font-size:9px;padding:2px 8px}
+  .card .price{font-size:17px}
+  .card .price-compare{font-size:9px;line-height:1.3}
+  .card .price-compare s{font-size:10px}
+  .card .price-compare em{font-size:10px}
+  .card .early-bird{font-size:9px;padding:1px 4px}
+  .card .slot-counter{font-size:9px}
+  .card .slot-counter strong{font-size:10px}
+  .card .card-foot{padding-top:8px}
+  .card .buy-btn{padding:8px 16px;font-size:11px}
+  .sub-grid{grid-template-columns:1fr;gap:10px}
+  .sub-card{padding:20px 16px}
+  .sub-card .icon{font-size:22px}
+  .sub-card .name{font-size:11px}
+  .sub-card .price{font-size:16px}
+  .sub-card .desc{font-size:13px}
+  .features{grid-template-columns:1fr}
+  .stats-row{flex-wrap:wrap;gap:8px}
+  .stat-pill{flex:1 1 calc(50% - 8px);padding:12px 8px}
+  .stat-pill .num{font-size:20px}
+  .stat-pill .lbl{font-size:10px}
+}
+</style>
+</head>
+<body>
+<div id="splash"><div class="spinner"></div><span>紫微斗数商城</span></div>
+<div id="jsErr" style="background:#300;color:#f88;padding:10px;font-size:13px;position:fixed;top:0;left:0;right:0;z-index:99999;display:none;text-align:center"></div>
+
+<div class="container">
+  <!-- Language Switcher -->
+  <div style="position:absolute;top:16px;right:20px;display:flex;gap:4px;z-index:10">
+    <button onclick="setLang('zh')" id="langZhBtn" style="background:transparent;border:1px solid #3a2a1e;color:#8a7050;font-size:11px;padding:3px 9px;border-radius:6px;cursor:pointer;transition:all .2s;font-family:inherit">中文</button>
+    <button onclick="setLang('en')" id="langEnBtn" style="background:transparent;border:1px solid #3a2a1e;color:#8a7050;font-size:11px;padding:3px 9px;border-radius:6px;cursor:pointer;transition:all .2s;font-family:inherit">EN</button>
+  </div>
+
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>✦ 紫微斗数 ✦</h1>
+    <div class="sub">
+      排盘 + 每日运势，一套搞定<br>
+      <span style="color:#f0b850;font-weight:500"><strong id="statKeys">—</strong> 位用户</span> · 累计排盘 <strong id="statCalls">—</strong> 次
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-pill"><div class="num">⭐</div><div class="lbl">排盘+命盘解读</div></div>
+    <div class="stat-pill"><div class="num">🌅</div><div class="lbl">每日运势推送</div></div>
+    <div class="stat-pill"><div class="num">🔑</div><div class="lbl">即买即用</div></div>
+    <div class="stat-pill"><div class="num">💎</div><div class="lbl">不满意可退款</div></div>
+  </div>
+
+  <!-- 套餐（定价卡片由JS渲染） -->
+  <div class="section-title" id="reportsTitle">📦 选择套餐</div>
+  <div class="pricing" id="pricing" data-section="main"></div>
+
+  <!-- 每日运势订阅（权益优先） -->
+  <div class="section-title" id="subTitle">🌅 每日运势订阅（随时可取消）</div>
+  <div class="sub-grid" id="subGrid">
+    <div class="sub-card">
+      <div class="icon">🌤️</div>
+      <div class="sub-value" id="subVal0">每日运势推送 · 开启好运人生</div>
+      <div class="sub-divider"></div>
+      <div class="sub-price-area">
+        <div class="price" id="subPrice0"><span class="pr-val" style="color:#b08860">$5.9</span> <span class="per" id="subPer0">首月</span></div>
+        <div class="sub-renew" id="subRenew0">续订 $8.9/月</div>
+        <div class="badge" id="subBadge0" style="display:none"></div>
+        <button class="sub-cta sub-btn" data-plan="monthly" onclick="subscribeOpen('monthly','月度订阅')">月度订阅</button>
+      </div>
+    </div>
+    <div class="sub-card premium">
+      <div class="icon">🌟</div>
+      <div class="sub-value" id="subVal1">全年运势护航 · 开挂一整年</div>
+      <div class="sub-divider"></div>
+      <div class="sub-price-area">
+        <div class="price" id="subPrice1"><span class="pr-val" style="color:#e8a040">$39.9</span> <span class="per" id="subPer1">首年</span></div>
+        <div class="sub-renew" id="subRenew1" style="display:none"></div>
+        <div class="badge" id="subBadge1">🔥 最超值</div>
+        <button class="sub-cta sub-btn" data-plan="yearly" onclick="subscribeOpen('yearly','年度订阅')">年度订阅</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="features">
+    <div class="feature-item">
+      <div class="fi">🌟</div>
+      <div><div class="ft">完整命盘</div><div class="fd">14主星 + 四化 + 辅星 · 十二宫全析 · 十年大限</div></div>
+    </div>
+    <div class="feature-item">
+      <div class="fi">🤖</div>
+      <div><div class="ft">深度解读</div><div class="fd">三种风格（现代/古典/诗意）可选 · 3000+字深度解析</div></div>
+    </div>
+    <div class="feature-item">
+      <div class="fi">🌅</div>
+      <div><div class="ft">每日运势</div><div class="fd">基于命盘+流日 · 环境心理学角度 · 幸运色/宜忌/空间建议</div></div>
+    </div>
+    <div class="feature-item">
+      <div class="fi">💻</div>
+      <div><div class="ft">开发者可用</div><div class="fd">标准 RESTful API · API Key 鉴权 · 支持任意前端/后端集成</div></div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="section-title">❓ FAQ</div>
+  <div class="faq">
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">如何购买？<span class="arrow">▼</span></div>
+      <div class="faq-a">选择套餐 → PayPal 支付 → Key 即时自动生成，复制即可使用。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Key的有效期是多久？<span class="arrow">▼</span></div>
+      <div class="faq-a">没有时间限制，用完为止。探运包3次命盤探查、知命包30次深度解析、掌运包200次全面分析、天命包1888次命盘解读。每次排盘+详解消耗1份，仅排盘消耗0.5份。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">买错了可以退吗？<span class="arrow">▼</span></div>
+      <div class="faq-a">不满意可联系退款。付款后如未使用，可联系退还。已使用的Key不可退。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">能给多个页面或开发者使用吗？<span class="arrow">▼</span></div>
+      <div class="faq-a">可以。API Key 可以在任意前端、后端、小程序中使用，不绑定设备或域名。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">每日运势订阅怎么用？<span class="arrow">▼</span></div>
+      <div class="faq-a">订阅后每日运势自动推送到你的邮箱。月度首月$5.9续订$8.9/月，年度首年$39.9。当前周期用完即停，随时可取消，下月不续扣。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">取消订阅后还能用吗？<span class="arrow">▼</span></div>
+      <div class="faq-a">可以。当前已付周期不受影响，到期自动停止，不再续费。</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">买套餐送的每日运势和订阅有什么区别？<span class="arrow">▼</span></div>
+      <div class="faq-a">套餐赠送的每日运势随 Key 的剩余次数消耗，订阅是独立按月/年持续推送。两者互不冲突，可以同时使用。</div>
+    </div>
+  </div>
+
+  <!-- Key Check -->
+  <div class="query-section">
+    <details>
+      <summary>🔍 Check Key Balance</summary>
+      <div class="query-row" style="margin-top:12px">
+        <input type="text" id="qKeyInput" placeholder="Enter your API Key to check balance & usage">
+        <button onclick="queryKey()">Check</button>
+      </div>
+      <div id="qResult" style="display:none;margin-top:12px"></div>
+    </details>
+  </div>
+
+  <!-- 忘记Key -->
+  <div class="query-section forget-section" style="margin-top:8px">
+    <details>
+      <summary>🔑 Forgot Key? Recover by Order ID</summary>
+      <div class="query-row" style="margin-top:12px">
+        <input type="text" id="forgetKeyInput" placeholder="Enter your order ID">
+        <button onclick="forgotKeyByOrder()">Recover Key</button>
+      </div>
+      <div id="forgetResult" style="display:none;margin-top:12px"></div>
+    </details>
+  </div>
+
+  <div class="footer">
+    紫微斗数
+  </div>
+</div>
+
+<div class="footer" style="border:none;padding:4px 0 16px;font-size:10px;color:#5a4020">
+  <div style="margin-bottom:4px">
+    <a href="/terms.html" style="color:#5a4020;text-decoration:none">Terms</a> ·
+    <a href="/privacy.html" style="color:#5a4020;text-decoration:none">Privacy</a> ·
+    <a href="/refund.html" style="color:#5a4020;text-decoration:none">Refunds</a>
+  </div>
+  ⚠️ 内容仅供娱乐参考，不构成专业建议
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <!-- 成功 -->
+    <div class="key-result" id="keyResult">
+      <div class="check">✅</div>
+      <h3>Key Generated!</h3>
+      <div class="sub">Copy and start using</div>
+      <div class="stat-grid">
+        <div class="stat-item"><div class="num" id="resultBalance">0</div><div class="lbl">Balance</div></div>
+        <div class="stat-item"><div class="num" id="resultUsed">0</div><div class="lbl">Used</div></div>
+      </div>
+      <div class="key-box">
+        <div class="key-text" id="keyDisplay">zw_xxxx</div>
+        <button class="copy-btn" onclick="copyKey()">📋 Copy Key</button>
+      </div>
+      <div style="font-size:12px;color:#9a7850;margin-bottom:8px">
+        套餐：<span id="resultPkg"></span>
+      </div>
+      <div style="font-size:11px;color:#8a7050;margin-bottom:12px;padding:8px;background:#1a1210;border-radius:8px">
+        👆 复制 Key 即可在应用中使用<br>
+        用户拿到 Key 后可直接在排盘页面使用
+      </div>
+      <button class="go-test-btn" onclick="goToTest()">🌟 Go test your key</button>
+    </div>
+
+    <!-- 支付弹窗 -->
+    <div id="payStep">
+      <h2 id="payStepTitle">💳 选择支付方式</h2>
+      <div id="payStepSub" class="sub">完成支付后 Key 即时自动生成，无需人工干预</div>
+      <div class="pay-info">
+        <div id="modalBenefits" style="font-size:17px;font-weight:700;color:#f0e0c8;margin:0 0 4px;line-height:1.4"></div>
+        <div class="pkg-label" id="modalPkg"></div>
+        <div id="modalDfBadge" style="margin:4px 0 8px"></div>
+        <div class="price-big" id="modalPrice" style="font-size:22px;font-weight:700;color:#f0c060">$0</div>
+      </div>
+
+      <div class="email-box">
+        <div class="email-label"><span class="icon">👤</span> <span id="nameLabel">称呼（选填）</span></div>
+        <input type="text" id="buyerName" placeholder="你的名字" class="email-input" maxlength="30">
+      </div>
+
+      <div class="email-box">
+        <div class="email-label"><span class="icon">📧</span> <span id="emailLabel">接收 Key 的邮箱</span></div>
+        <input type="email" id="buyerEmail" placeholder="your@email.com" class="email-input" inputmode="email">
+      </div>
+
+      <!-- 出生信息（订阅用） -->
+      <div id="subBirthSection" style="display:none;margin-top:10px;padding:10px;background:#1a1210;border:1px solid #3a2a1e;border-radius:10px">
+        <div id="subBirthLabel" style="font-size:12px;color:#9a7850;margin-bottom:6px">📅 出生信息（用于生成专属运势）</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <select id="subBirthYear" style="flex:1;min-width:70px;padding:6px 8px;border-radius:8px;border:1px solid #3a2a1e;background:#0e0a08;color:#e8d8c0;font-size:11px;outline:none"></select>
+          <select id="subBirthMonth" style="flex:1;min-width:60px;padding:6px 8px;border-radius:8px;border:1px solid #3a2a1e;background:#0e0a08;color:#e8d8c0;font-size:11px;outline:none"></select>
+          <select id="subBirthDay" style="flex:1;min-width:60px;padding:6px 8px;border-radius:8px;border:1px solid #3a2a1e;background:#0e0a08;color:#e8d8c0;font-size:11px;outline:none"></select>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <select id="subBirthHour" style="flex:1;min-width:80px;padding:6px 8px;border-radius:8px;border:1px solid #3a2a1e;background:#0e0a08;color:#e8d8c0;font-size:11px;outline:none">
+            <option value="0">子(23:00-00:59)</option>
+            <option value="1">丑(01:00-02:59)</option>
+            <option value="2">寅(03:00-04:59)</option>
+            <option value="3">卯(05:00-06:59)</option>
+            <option value="4">辰(07:00-08:59)</option>
+            <option value="5">巳(09:00-10:59)</option>
+            <option value="6">午(11:00-12:59)</option>
+            <option value="7">未(13:00-14:59)</option>
+            <option value="8">申(15:00-16:59)</option>
+            <option value="9">酉(17:00-18:59)</option>
+            <option value="10">戌(19:00-20:59)</option>
+            <option value="11">亥(21:00-22:59)</option>
+          </select>
+          <select id="subBirthGender" style="flex:1;min-width:50px;padding:6px 8px;border-radius:8px;border:1px solid #3a2a1e;background:#0e0a08;color:#e8d8c0;font-size:11px;outline:none">
+            <option value="male">♂ 男</option>
+            <option value="female">♀ 女</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        <button id="paypalBtn" onclick="payWithPayPal()" style="padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#0070ba,#003087);color:#fff;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:1px;transition:all .3s" disabled>💳 PayPal</button>
+        <button id="mockBtn" onclick="payMock()" style="padding:10px;border:none;border-radius:10px;background:rgba(100,220,150,.1);border:1px solid rgba(100,220,150,.25);color:#64c896;font-size:12px;cursor:pointer;transition:all .2s">📧 免费试用（Key发到邮箱，限3次）</button>
+        <div id="limitNotice" style="text-align:center;font-size:11px;color:#8a7050;margin-top:4px">🔑 每人限领1次 · 同一IP 24小时内限1次</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.onerror = function(msg,url,line){const e=document.getElementById('jsErr');e.style.display='block';e.textContent=msg+' at line '+line;};
+
+// ─── Language auto-detect ───
+const userLang = (navigator.language || navigator.userLanguage || 'en').split('-')[0];
+const savedRaw = localStorage.getItem('zw_lang');
+const savedLang = savedRaw === 'zh-Hant' || savedRaw === 'zh-Hans' ? 'zh' : savedRaw;
+let lang = savedLang || (userLang === 'zh' ? 'zh' : 'en');
+
+const TEXT = {
+  zh: {
+    heroTitle: '✦ 紫微斗数 ✦',
+    heroSub: '排盘 + 每日运势，一套搞定<br><span style="color:#f0b850;font-weight:500"><strong id="statKeys">—</strong> 位用户</span> · 累计排盘 <strong id="statCalls">—</strong> 次',
+    stats: ['排盘+命盘解读','每日运势推送','即买即用','不满意可退款'],
+    sectionPricing: '📦 选择套餐',
+    features: [
+      {ft:'完整命盘',fd:'14主星 + 四化 + 辅星 · 十二宫全析 · 十年大限'},
+      {ft:'命盘深度解读',fd:'三种风格（现代/古典/诗意）可选 · 3000+字深度解析'},
+      {ft:'每日运势',fd:'基于命盘+流日 · 环境心理学角度 · 幸运色/宜忌/空间建议'},
+      {ft:'开发者可用',fd:'标准 RESTful API · API Key 鉴权 · 支持任意前端/后端集成'},
+    ],
+    sectionFaq: '❓ 常见问题',
+    faq: [
+      {q:'如何购买？',a:'选择套餐 → PayPal 支付 → Key 即时自动生成，复制即可使用。'},
+      {q:'Key的有效期是多久？',a:'没有时间限制，用完为止。探运包3次命盤探查、知命包30次深度解析、掌运包200次全面分析、天命包1888次命盘解读。每次排盘+详解消耗1份，仅排盘消耗0.5份。'},
+      {q:'买错了可以退吗？',a:'不满意可联系退款。付款后如未使用，可联系退还。已使用的Key不可退。'},
+      {q:'能给多个页面使用吗？',a:'可以。API Key 可以在任意前端、后端、小程序中使用，不绑定设备或域名。'},
+      {q:'每日运势订阅怎么用？',a:'订阅后每日运势自动推送到你的邮箱。月度首月$5.9续订$8.9/月，年度首年$39.9。当前周期用完即停，随时可取消，下月不续扣。'},
+      {q:'取消订阅后还能用吗？',a:'可以。当前已付周期不受影响，到期自动停止，不再续费。'},
+      {q:'套餐送的每日运势和订阅有什么区别？',a:'套餐赠送的每日运势随 Key 的剩余次数消耗，订阅是独立按月/年持续推送。两者互不冲突，可以同时使用。'},
+    ],
+    queryTitle: '🔍 查询 Key 余额',
+    queryPlaceholder: '输入 API Key 查询余额与用量',
+    queryBtn: '查询',
+    keyGenerated: 'Key 已生成！',
+    keySub: '复制 Key 即可使用',
+    balance: '剩余额度',
+    used: '已用额度',
+    copyKey: '📋 复制 Key',
+    goTest: '🌟 去排盘页面测试',
+    payStripe: '💳 Pay with Stripe',
+    payLS: '🍋 Pay with LemonSqueezy',
+    payAuto: '🔑 支付即自动出 Key · 无需人工干预',
+    orderRefund: '付款后如未使用可联系退回',
+    forgetTitle: '🔑 忘记 Key？按订单号找回',
+    forgetPH: '输入购买时收到的订单号',
+    forgetBtn: '找回 Key',
+    forgetSuccess: '你的 API Key 是：',
+    forgetError: '未找到该订单号，请检查输入',
+    orderLabel: '订单号',
+    emailLabel: '接收 Key 的邮箱',
+    emailPH: 'your@email.com',
+    nameLabel: '称呼（选填）',
+    namePH: '你的名字',
+    sectionSubscribe: '🌅 每日运势订阅（随时可取消）',
+    subscribePlans: [
+      {name:'月度订阅', per:'/月', price:'$5.9', subPrice:'$8.9', promoLabel:'首月', value:'每日运势推送 · 开启好运人生', desc:'每日推送 · 随时可取消', badge:''},
+      {name:'年度订阅', per:'/年', price:'$39.9', subPrice:'', promoLabel:'首年', value:'全年运势护航 · 开挂一整年', desc:'每日推送 · 全年运势风向标', badge:'🔥 最超值'},
+    ],
+    subscribeCta: '📧 订阅',
+    mockBtn: '📧 免费试用（Key发到邮箱，限3次）',
+    limitNotice: '🔑 每人限领1次 · 同一IP 24小时内限1次',
+    subBirthLabel: '📅 出生信息（用于生成专属运势）',
+    payTitle: '💳 选择支付方式',
+    paySub: '完成支付后 Key 即时自动生成，无需人工干预',
+  },
+  en: {
+    heroTitle: '✦ Zi Wei Dou Shu ✦',
+    heroSub: 'Chart + Daily Fortune, one purchase<br><strong id="statKeys">—</strong> users · <strong id="statCalls">—</strong> charts',
+    stats: ['Chart+Reading','Daily Fortune','Instant Access','30-Day Refund'],
+    sectionPricing: '📦 Choose your plan',
+    features: [
+      {ft:'Complete Chart',fd:'14 main stars + 4 transformations + assistant stars'},
+      {ft:'Deep Reading',fd:'3 styles (Modern/Classical/Poetic) · 3000+ words'},
+      {ft:'Daily Fortune',fd:'Based on your chart · Lucky colors · Dos and Donts'},
+      {ft:'Developer API',fd:'RESTful API · Key auth · Any frontend/backend'},
+    ],
+    sectionFaq: '❓ FAQ',
+    faq: [
+      {q:'How to buy?',a:'Choose a plan → PayPal payment → Key auto-generated instantly.'},
+      {q:'Does the Key expire?',a:'No time limit. Use until quota runs out. Fate Seeker 3 readings, Destiny Insight 30 deep readings, Fortune Master 200 full analyses, Celestial 1888 readings. Each full chart+reading uses 1 unit, chart-only 0.5 units.'},
+      {q:'Can I get a refund?',a:'Contact us for a refund. Unused keys can be refunded. Used keys are non-refundable.'},
+      {q:'Can I use it on multiple sites?',a:'Yes. API Key works anywhere. No domain or device binding.'},
+      {q:'How does Daily Fortune subscription work?',a:'After subscribing, daily fortune is sent to your email. Monthly $5.9 first month then $8.9/mo, yearly $39.9 first year. Cancel anytime, current period continues, no renewal.'},
+      {q:'What happens after cancellation?',a:'Your current paid period remains active. When it ends, the subscription stops automatically. No further charges.'},
+      {q:'Package gift vs subscription?',a:'Gifted daily fortune from packages consumes your Key quota. Subscription is a separate recurring service. Both can run simultaneously.'},
+    ],
+    queryTitle: '🔍 Check Key Balance',
+    queryPlaceholder: 'Enter your API Key to check balance & usage',
+    queryBtn: 'Check',
+    keyGenerated: 'Key Generated!',
+    keySub: 'Copy and start using',
+    balance: 'Quota left',
+    used: 'Used',
+    copyKey: '📋 Copy Key',
+    goTest: '🌟 Go test your key',
+    payStripe: '💳 Pay with Stripe',
+    payLS: '🍋 Pay with LemonSqueezy',
+    payAuto: '🔑 Key auto-generated after payment · No manual steps',
+    orderRefund: 'Contact for refund',
+    forgetTitle: '🔑 Forgot Key? Recover by Order ID',
+    forgetPH: 'Enter your order ID',
+    forgetBtn: 'Recover Key',
+    forgetSuccess: 'Your API Key:',
+    forgetError: 'Order not found. Please check your order ID.',
+    orderLabel: 'Order ID',
+    emailLabel: 'Email to receive Key',
+    emailPH: 'your@email.com',
+    nameLabel: 'Name (optional)',
+    namePH: 'Your name',
+    sectionSubscribe: '🌅 Daily Fortune Subscription (Cancel anytime)',
+    subscribePlans: [
+      {name:'Monthly', per:'/mo', price:'$5.9', subPrice:'$8.9', promoLabel:'1st mo', value:'Daily fortune · Level up your life', desc:'Daily fortune · Cancel anytime', badge:''},
+      {name:'Yearly', per:'/yr', price:'$39.9', subPrice:'', promoLabel:'1st yr', value:'Fortune all year · Game changer', desc:'Daily fortune · Full year', badge:'🔥 Best Value'},
+    ],
+    subscribeCta: '📧 Subscribe',
+    mockBtn: '📧 Free Trial (Key sent to email, 3 times max)',
+    limitNotice: '🔑 1 per person · 1 per 24h per IP',
+    subBirthLabel: '📅 Birth info (for personalized fortune)',
+    payTitle: '💳 Choose payment method',
+    paySub: 'Key auto-generated after payment · No manual steps',
+  }
+};
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('zw_lang', l);
+  document.getElementById('htmlRoot').lang = l === 'zh' ? 'zh-CN' : 'en';
+  // Toggle button active state
+  document.getElementById('langZhBtn').style.borderColor = l === 'zh' ? '#e8a040' : '#3a2a1e';
+  document.getElementById('langZhBtn').style.color = l === 'zh' ? '#f0e0c8' : '#8a7050';
+  document.getElementById('langZhBtn').style.background = l === 'zh' ? 'rgba(232,160,64,.15)' : 'transparent';
+  document.getElementById('langEnBtn').style.borderColor = l === 'en' ? '#e8a040' : '#3a2a1e';
+  document.getElementById('langEnBtn').style.color = l === 'en' ? '#f0e0c8' : '#8a7050';
+  document.getElementById('langEnBtn').style.background = l === 'en' ? 'rgba(232,160,64,.15)' : 'transparent';
+  applyText();
+  _applyStats();
+  // Re-render pricing cards with new language
+  document.getElementById('pricing').innerHTML = '';
+  renderPricing();
+}
+
+function applyText() {
+  const t = TEXT[lang];
+  if (!t) return;
+  // Hero
+  document.querySelector('.hero h1').innerHTML = t.heroTitle;
+  document.querySelector('.hero .sub').innerHTML = t.heroSub;
+  // Stats
+  document.querySelectorAll('.stat-pill .lbl').forEach((el, i) => { if(t.stats[i]) el.textContent = t.stats[i]; });
+  // Section titles
+  const titles = document.querySelectorAll('.section-title');
+  if(titles[0]) titles[0].textContent = t.sectionPricing;
+  if(titles[1]) titles[1].textContent = t.sectionSubscribe;
+  if(titles[2]) titles[2].textContent = t.sectionFaq;
+  // Features
+  document.querySelectorAll('.feature-item').forEach((el, i) => {
+    if (t.features[i]) {
+      el.querySelector('.ft').textContent = t.features[i].ft;
+      el.querySelector('.fd').innerHTML = t.features[i].fd;
+    }
+  });
+  // FAQ
+  document.querySelectorAll('.faq-item').forEach((el, i) => {
+    if (t.faq[i]) {
+      el.querySelector('.faq-q').innerHTML = t.faq[i].q + ' <span class="arrow">\u25bc</span>';
+      el.querySelector('.faq-a').textContent = t.faq[i].a;
+    }
+  });
+  // Query section
+  const details = document.querySelector('.query-section details summary');
+  if(details) details.textContent = t.queryTitle;
+  const queryInput = document.getElementById('qKeyInput');
+  if(queryInput) queryInput.placeholder = t.queryPlaceholder;
+  const queryBtns = document.querySelectorAll('.query-row button');
+  queryBtns.forEach(btn => { btn.textContent = t.queryBtn; });
+  // Modal
+  const keyResult = document.getElementById('keyResult');
+  if(keyResult) {
+    const h3 = keyResult.querySelector('h3');
+    if(h3) h3.textContent = t.keyGenerated;
+    const sub = keyResult.querySelector('.sub');
+    if(sub) sub.textContent = t.keySub;
+  }
+  // Payment section text in modal
+  const paySection = document.querySelector('#payStep > div');
+  if(paySection) {
+    const payTitle = paySection.querySelector('[style*="font-size:15px"]');
+    if(payTitle) payTitle.textContent = t.payStripe;
+    const autoText = paySection.querySelector('[style*="font-size:13px;color:#f0b850"]');
+    if(autoText) autoText.textContent = t.payAuto;
+  }
+  // Page title
+  document.getElementById('pageTitle').textContent = lang === 'zh' ? '紫微斗数 · 解锁你的命盘' : 'Zi Wei Dou Shu';
+  // Email label
+  const el = document.getElementById('emailLabel');
+  if(el) el.textContent = t.emailLabel;
+  const ei = document.getElementById('buyerEmail');
+  if(ei) ei.placeholder = t.emailPH;
+  // Name label
+  const nl = document.getElementById('nameLabel');
+  if(nl) nl.textContent = t.nameLabel;
+  const ni = document.getElementById('buyerName');
+  if(ni) ni.placeholder = t.namePH;
+  // Forgot key section
+  const forgetDetails = document.querySelector('.forget-section details summary');
+  if(forgetDetails) forgetDetails.textContent = t.forgetTitle;
+  const forgetInput = document.getElementById('forgetKeyInput');
+  if(forgetInput) forgetInput.placeholder = t.forgetPH;
+  const forgetBtns = document.querySelectorAll('.forget-section .query-row button');
+  forgetBtns.forEach(btn => { btn.textContent = t.forgetBtn; });
+  // Subscribe text
+  const st = document.getElementById('subTitle');
+  if(st) st.textContent = t.sectionSubscribe;
+  document.querySelectorAll('#subGrid .sub-card').forEach((el, i) => {
+    if(t.subscribePlans[i]){
+      const n=el.querySelector('.name');
+      if(n)n.textContent=t.subscribePlans[i].name;
+      const p=el.querySelector('.per');
+      if(p)p.textContent=t.subscribePlans[i].promoLabel || t.subscribePlans[i].per;
+      const pr=el.querySelector('.pr-val');
+      if(pr)pr.textContent=t.subscribePlans[i].price;
+      const sr=el.querySelector('.sub-renew');
+      if(sr){
+        const sp=t.subscribePlans[i].subPrice;
+        const unit=t.subscribePlans[i].per;
+        if(sp) sr.textContent=lang==='zh'?'续订 '+sp+unit:'Renew '+sp+unit;
+        else sr.style.display='none';
+      }
+      const d=el.querySelector('.desc');
+      if(d)d.textContent=t.subscribePlans[i].desc;
+      const b=el.querySelector('.badge');
+      if(b)b.textContent=t.subscribePlans[i].badge;
+      const sv=el.querySelector('.sub-value');
+      if(sv)sv.textContent=t.subscribePlans[i].value;
+      const btn=el.querySelector('.sub-btn');
+      if(btn)btn.textContent=t.subscribePlans[i].name;
+    }
+  });
+  // Modal text
+  const pts=document.getElementById('payStepTitle');
+  if(pts)pts.textContent=t.payTitle;
+  const pss=document.getElementById('payStepSub');
+  if(pss)pss.textContent=t.paySub;
+  const mb=document.getElementById('mockBtn');
+  if(mb)mb.textContent=t.mockBtn;
+  const ln=document.getElementById('limitNotice');
+  if(ln)ln.textContent=t.limitNotice;
+  const sbl=document.getElementById('subBirthLabel');
+  if(sbl)sbl.textContent=t.subBirthLabel;
+  // Rebuild birth date/hour/gender selects for subscribe
+  rebuildSubBirthSelects();
+}
+
+// ─── Daily Fortune 订阅 ──
+let _isSubscribe = false;
+let _subPlan = 'monthly';
+
+function subscribeOpen(plan, label){
+  _isSubscribe = true;
+  _subPlan = plan;
+  const t = TEXT[lang];
+  const planIdx = plan === 'monthly' ? 0 : 1;
+  const pd = t.subscribePlans[planIdx];
+  const benefitText = pd.value;
+  document.getElementById('modalBenefits').innerHTML = benefitText;
+  document.getElementById('modalPrice').textContent = pd.price;
+  document.getElementById('modalPkg').textContent = pd.name;
+  document.getElementById('payStep').style.display = 'block';
+  document.getElementById('keyResult').classList.remove('show');
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('paypalBtn').disabled = false;
+  document.getElementById('paypalBtn').textContent = lang==='zh'?'💳 PayPal':'💳 PayPal';
+  document.getElementById('mockBtn').style.display = 'none';
+  document.querySelector('#payStep h2').textContent = lang==='zh'?'💳 订阅支付':'💳 Subscription';
+  document.querySelector('#payStep .sub').textContent = lang==='zh'?'完成支付后每日运势将自动推送到你的邮箱':'Daily fortune will be sent to your email after payment';
+  document.getElementById('nameLabel').parentElement.parentElement.style.display = '';
+  document.getElementById('emailLabel').textContent = lang==='zh'?'接收运势的邮箱':'Email for daily fortune';
+  document.getElementById('modalDfBadge').style.display = 'none';
+  // Show birth info section for subscription
+  const birthSection = document.getElementById('subBirthSection');
+  if(birthSection) birthSection.style.display = '';
+  // Rebuild selects with current language
+  rebuildSubBirthSelects();
+}
+
+function rebuildSubBirthSelects(){
+  var l = lang || 'zh';
+  // Init date selects
+  var sy=document.getElementById('subBirthYear'),sm=document.getElementById('subBirthMonth'),sd=document.getElementById('subBirthDay');
+  if(!sy)return;
+  var months = l==='en' ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] : ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var now=new Date(), y=now.getFullYear();
+  sy.innerHTML=''; for(var i=y-90;i<=y-10;i++) sy.innerHTML+='<option value="'+i+'">'+i+(l==='en'?'':'年')+'</option>';
+  sm.innerHTML=''; for(var i=1;i<=12;i++) sm.innerHTML+='<option value="'+i+'">'+months[i-1]+'</option>';
+  sd.innerHTML=''; for(var i=1;i<=31;i++) sd.innerHTML+='<option value="'+i+'">'+i+(l==='en'?'':'日')+'</option>';
+  // Hour options
+  var sh=document.getElementById('subBirthHour');
+  if(sh){
+    var hourLabels = l==='en'
+      ? ['Zi (23:00-00:59)','Chou (01:00-02:59)','Yin (03:00-04:59)','Mao (05:00-06:59)','Chen (07:00-08:59)','Si (09:00-10:59)','Wu (11:00-12:59)','Wei (13:00-14:59)','Shen (15:00-16:59)','You (17:00-18:59)','Xu (19:00-20:59)','Hai (21:00-22:59)']
+      : ['子(23:00-00:59)','丑(01:00-02:59)','寅(03:00-04:59)','卯(05:00-06:59)','辰(07:00-08:59)','巳(09:00-10:59)','午(11:00-12:59)','未(13:00-14:59)','申(15:00-16:59)','酉(17:00-18:59)','戌(19:00-20:59)','亥(21:00-22:59)'];
+    var sv=sh.value; sh.innerHTML='';
+    for(var i=0;i<12;i++){
+      var o=document.createElement('option'); o.value=i; o.textContent=hourLabels[i];
+      if(i==sv) o.selected=true; sh.appendChild(o);
+    }
+  }
+  // Gender options
+  var sg=document.getElementById('subBirthGender');
+  if(sg){
+    var gLabels = l==='en' ? ['♂ Male','♀ Female'] : ['♂ 男','♀ 女'];
+    var gv=sg.value; sg.innerHTML='';
+    gLabels.forEach(function(t,i){
+      var o=document.createElement('option'); o.value=['male','female'][i]; o.textContent=t;
+      if(o.value==gv) o.selected=true; sg.appendChild(o);
+    });
+  }
+}
+
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.sub-btn');
+  if(!btn) return;
+  const plan = btn.getAttribute('data-plan') || 'monthly';
+  subscribeOpen(plan, btn.textContent);
+});
+
+// ─── Runtime state ───
+let _cachedStats = {keys: '—', calls: '—'};
+// 掌运包限时名额跟踪（localStorage持久化）
+let _proRemaining = (function(){
+  const key = 'zw_pro_slots';
+  let n = parseInt(localStorage.getItem(key), 10);
+  if(isNaN(n) || n < 1){ n = 16; } // 种子值
+  if(n > 1){ n--; localStorage.setItem(key, n); }
+  return n;
+})();
+
+// Set initial language
+try {
+  setLang(lang);
+} catch(e) {
+  const ee=document.getElementById('jsErr');
+  if(ee){ee.style.display='block';ee.textContent+=' setLang error: '+e.message;}
+  console.error('setLang failed:', e);
+}
+
+// Auto-detect API URL — 支持CF Tunnel / 本地 / 部署
+const API = window.location.origin === 'file://' || window.location.origin === 'null' ? 'http://127.0.0.1:8119' : window.location.origin;
+const URL_KEY_STORAGE = 'zw_last_key';
+
+let selPkg = null;
+let orderId = '';
+let _payPollTimer = null;
+
+function getPkgs(l){
+  const isZh = l === 'zh';
+  return {
+    starter:   {icon:'🌟', name:isZh?'探运包':'Fate Seeker',  price:9.9,  quota:3,    df:7,   color:'#b08860', popular:false, per:isZh?'$3.30/次':'$3.30/reading', qLabel:isZh?'次命盤探查':'readings', value:isZh?'初探命理，一窥天机':'Explore Fate', cta:isZh?'开始探索':'Start Explore'},
+    standard:  {icon:'📖', name:isZh?'知命包':'Destiny Knower', price:29.9, quota:30,   df:30,  color:'#e8a040', popular:true,  per:isZh?'$1.00/次':'$1.00/reading', qLabel:isZh?'次深度解析':'deep readings', value:isZh?'知己知命，步步为营':'Know Your Fate', cta:isZh?'知己知彼':'Know Your Fate'},
+    pro:       {icon:'⚡', name:isZh?'掌运包':'Fortune Master', price:119,  quota:200,  df:90, color:'#dd8866', popular:false, per:isZh?'$0.60/次':'$0.60/reading', qLabel:isZh?'次全面分析':'full analyses', value:isZh?'掌控全局，运筹帷幄':'Master Your Fortune', originalPrice:199, earlyBird:28, cta:isZh?'掌控全局':'Master It'},
+    enterprise:{icon:'👑', name:isZh?'天命包':'Destiny Pro',   price:1288, quota:1888, df:365, color:'#f0d080', popular:false, per:isZh?'$0.68/次':'$0.68/reading', qLabel:isZh?'次命盘解读':'readings',   value:isZh?'顺风顺水，全年无忧':'Smooth Sailing', cta:isZh?'开启天命':'Unlock Destiny'},
+  };
+}
+
+// ─── Init ──
+(function(){
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get('key')) {
+    localStorage.setItem(URL_KEY_STORAGE, params.get('key'));
+  }
+
+  loadStats();
+  // 初始化订阅弹窗的出生日期下拉
+  initBirthSelects();
+  // 获取 PayPal 邮箱
+  fetch(API + '/v1/config').then(r=>r.json()).then(d=>{if(d.success)window._paypalEmail=d.data.paypal_email}).catch(()=>{});
+
+})();
+
+function initBirthSelects(){
+  const now = new Date();
+  const sy = document.getElementById('subBirthYear');
+  const sm = document.getElementById('subBirthMonth');
+  const sd = document.getElementById('subBirthDay');
+  if(!sy) return;
+  for(let y=now.getFullYear(); y>=1920; y--){
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y+'年';
+    if(y===1990) o.selected = true;
+    sy.appendChild(o);
+  }
+  for(let m=1; m<=12; m++){
+    const o = document.createElement('option');
+    o.value = m; o.textContent = m+'月';
+    if(m===1) o.selected = true;
+    sm.appendChild(o);
+  }
+  const daysInMonth = new Date(1990, 1, 0).getDate();
+  for(let d=1; d<=31; d++){
+    const o = document.createElement('option');
+    o.value = d; o.textContent = d+'日';
+    if(d===15) o.selected = true;
+    sd.appendChild(o);
+  }
+}
+
+function renderPricing(){
+  const PKGS = getPkgs(lang);
+  const g = document.getElementById('pricing');
+  Object.entries(PKGS).forEach(([id, p]) => {
+    const d = document.createElement('div');
+    d.className = 'card' + (p.popular ? ' popular' : '') + (id === 'enterprise' ? ' premium' : '');
+    const dfText = p.df > 0
+      ? (lang==='zh'
+        ? `<div class="df-badge${id==='standard'?' highlight':''}">📨 赠${p.df>=365?Math.floor(p.df/365)+'年':p.df>=30?Math.floor(p.df/30)+'个月':p.df+'日'}每日运势</div>`
+        : `<div class="df-badge${id==='standard'?' highlight':''}">📨 +${p.df>=365?Math.floor(p.df/365)+'yr':p.df>=30?Math.floor(p.df/30)+'mo':p.df+'d'} Daily Fortune</div>`)
+      : '';
+    const compareText = id === 'standard'
+      ? (lang==='zh'
+        ? '<div class="price-compare"><s>原价$99</s></div>'
+        : '<div class="price-compare"><s>Was $99</s></div>')
+      : id === 'pro'
+      ? (lang==='zh'
+        ? '<div class="price-compare"><s>原价$'+p.originalPrice+'</s></div><div class="slot-counter">⏳ 仅剩<strong>'+_proRemaining+'</strong>席 · 满额恢复原价</div>'
+        : '<div class="price-compare"><s>Was $'+p.originalPrice+'</s></div><div class="slot-counter">⏳ <strong>'+_proRemaining+'</strong> left · Price goes up</div>')
+      : '';
+    d.innerHTML = `
+      <div class="icon">${p.icon}</div>
+      <div class="name">${p.name}</div>
+      <div class="value-tag">${p.value}</div>
+      <div class="quota">${p.quota}${p.qLabel}</div>
+      ${dfText}
+      <div class="card-foot">
+        ${compareText}
+        <div class="price" style="color:${p.color}">$${p.price}</div>
+        <div class="buy-btn" style="color:${p.color};border-color:${p.color}40">${p.cta}</div>
+      </div>
+    `;
+    d.onclick = () => selectPkg(id);
+    g.appendChild(d);
+  });
+}
+
+async function loadStats(){
+  try{
+    const res = await fetch(API + '/v1/stats');
+    const d = await res.json();
+    if(d.success){
+      _cachedStats = {keys: d.data.total_keys, calls: d.data.total_calls};
+      _applyStats();
+    }
+  }catch(e){}
+}
+function _applyStats(){
+  const sk = document.getElementById('statKeys');
+  const sc = document.getElementById('statCalls');
+  if(sk) sk.textContent = _cachedStats.keys;
+  if(sc) sc.textContent = _cachedStats.calls;
+}
+
+function selectPkg(id){
+  _isSubscribe = false;
+  const PKGS = getPkgs(lang);
+  selPkg = id;
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.card')[Object.keys(PKGS).indexOf(id)].classList.add('selected');
+
+  const p = PKGS[id];
+  document.getElementById('modalPrice').textContent = `$${p.price}`;
+  document.getElementById('modalPkg').textContent = `${p.name} · ${p.quota}${p.qLabel}`;
+  // Benefits
+  const benefitEl = document.getElementById('modalBenefits');
+  benefitEl.innerHTML = `<span style="color:#f0b850">${p.value}</span>`;
+  // DF badge
+  const dfEl = document.getElementById('modalDfBadge');
+  if(p.df > 0){
+    const dfLabel = lang==='zh'
+      ? `📨 赠${p.df>=365?Math.floor(p.df/365)+'年':p.df>=30?Math.floor(p.df/30)+'个月':p.df+'日'}每日运势 · 邮箱自动推送`
+      : `📨 +${p.df>=365?Math.floor(p.df/365)+'yr':p.df>=30?Math.floor(p.df/30)+'mo':p.df+'d'} Daily Fortune · Email auto-delivery`;
+    dfEl.innerHTML = `<span style="display:inline-block;font-size:11px;color:#4ade80;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.15);border-radius:20px;padding:3px 12px;letter-spacing:.5px">${dfLabel}</span>`;
+    dfEl.style.display = '';
+  } else {
+    dfEl.style.display = 'none';
+  }
+  document.getElementById('payStep').style.display = 'block';
+  document.getElementById('keyResult').classList.remove('show');
+  document.getElementById('modal').classList.add('show');
+  // Enable payment buttons
+  document.getElementById('paypalBtn').disabled = false;
+  document.getElementById('paypalBtn').textContent = lang==='zh'?'💳 PayPal':'💳 PayPal';
+  document.getElementById('mockBtn').style.display = '';
+  document.querySelector('#payStep h2').textContent = lang==='zh'?'💳 选择支付方式':'💳 Checkout';
+  document.querySelector('#payStep .sub').textContent = lang==='zh'?'完成支付后 Key 即时自动生成，无需人工干预':'Key auto-generated after payment';
+  document.getElementById('nameLabel').parentElement.parentElement.style.display = '';
+  document.getElementById('emailLabel').textContent = lang==='zh'?'接收 Key 的邮箱':'Email to receive Key';
+  // Hide birth section for package purchase
+  const birthSection = document.getElementById('subBirthSection');
+  if(birthSection) birthSection.style.display = 'none';
+}
+
+async function payWithPayPal(){
+  const btn = document.getElementById('paypalBtn');
+  if(_isSubscribe){
+    // ─── 订阅支付 ──
+    const email = document.getElementById('buyerEmail').value.trim();
+    if(!email || !email.includes('@')){
+      alert(lang==='zh'?'请填写接收运势的邮箱':'Please enter your email');
+      return;
+    }
+    btn.disabled = true; btn.textContent = lang==='zh'?'⏳ 跳转支付...':'⏳ Redirecting...';
+    try{
+      const name = document.getElementById('buyerName').value.trim();
+      const by = document.getElementById('subBirthYear')?.value || '';
+      const bm = document.getElementById('subBirthMonth')?.value || '';
+      const bd = document.getElementById('subBirthDay')?.value || '';
+      const bh = document.getElementById('subBirthHour')?.value || '6';
+      const bg = document.getElementById('subBirthGender')?.value || 'male';
+      const res = await fetch(API + '/v1/checkout/subscribe-paypal', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({plan: _subPlan, email, name, birth_year:by, birth_month:bm, birth_day:bd, birth_hour:bh, birth_gender:bg})
+      });
+      const d = await res.json();
+      if(d.success && d.data && d.data.url){
+        window.location.href = d.data.url;
+      } else if(d.success && d.data && d.data.mock){
+        // Mock mode (dev without PayPal)
+        window.location.href = API + '/shop.html?order_id=' + d.data.order_id + '&success=1&sub_email=' + encodeURIComponent(email) + '&sub_plan=' + _subPlan + '&sub_name=' + encodeURIComponent(name) + '&sub_by=' + by + '&sub_bm=' + bm + '&sub_bd=' + bd + '&sub_bh=' + bh + '&sub_bg=' + bg;
+      } else {
+        alert('Failed: ' + (d.error || 'Unknown error'));
+        btn.disabled = false; btn.textContent = lang==='zh'?'💳 支付':'💳 Pay';
+      }
+    }catch(e){
+      alert('Network error: ' + e.message);
+      btn.disabled = false; btn.textContent = lang==='zh'?'💳 支付':'💳 Pay';
+    }
+    return;
+  }
+  // ─── Key套餐支付（PayPal） ──
+  const buyerEmail = document.getElementById('buyerEmail').value.trim();
+  if(!buyerEmail){
+    alert(lang==='zh'?'请先填写接收 Key 的邮箱':'Please enter your email to receive the key');
+    return;
+  }
+  const buyerName = document.getElementById('buyerName').value.trim();
+  btn.disabled = true; btn.textContent = lang==='zh'?'⏳ 跳转 PayPal...':'⏳ Redirecting to PayPal...';
+  try{
+    let url = API + '/v1/checkout/paypal?package=' + encodeURIComponent(selPkg) + '&buyer_email=' + encodeURIComponent(buyerEmail);
+    if (buyerName) url += '&buyer_name=' + encodeURIComponent(buyerName);
+    const res = await fetch(url, {method: 'POST'});
+    const d = await res.json();
+    if(d.success && d.data && d.data.url){
+      window.location.href = d.data.url;
+    } else if(d.success && d.data && d.data.mock){
+      // Dev mode: simulate payment
+      window.location.href = d.data.url + '?order_id=' + d.data.order_id + '&success=1';
+    } else {
+      alert('Failed: ' + (d.error || 'Unknown error'));
+      btn.disabled = false; btn.textContent = lang==='zh'?'💳 PayPal':'💳 PayPal';
+    }
+  }catch(e){
+    alert('Network error: ' + e.message);
+    btn.disabled = false; btn.textContent = lang==='zh'?'💳 PayPal':'💳 PayPal';
+  }
+}
+
+async function payWithPayJS(){
+  const btn = document.getElementById('payjsBtn');
+  btn.disabled = true; btn.textContent = lang==='zh'?'⏳ 获取支付二维码...':'⏳ Getting QR code...';
+  try{
+    const res = await fetch(API + '/v1/checkout/payjs', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({package: selPkg}),
+    });
+    const d = await res.json();
+    if(d.data && d.data.qrcode){
+      // Show QR code
+      const orderId = d.data.order_id;
+      document.getElementById('payStep').innerHTML = `<div class="pay-pending">
+        <h2>${lang==='zh'?'📱 扫码支付':'📱 Scan to Pay'}</h2>
+        <div class="sub">${lang==='zh'?'打开支付宝或微信扫一扫':'Open Alipay or WeChat to scan'}</div>
+        <div class="qr-wrap"><img src="${d.data.qrcode}" style="width:220px;height:220px;border-radius:12px;border:2px solid rgba(232,160,64,.2)"></div>
+        <div class="price-big">$${d.data.amount}</div>
+        <div style="font-size:11px;color:#8a7050;margin-top:6px">${lang==='zh'?'支付成功后 Key 自动生成':'Key auto-generated after payment'}</div>
+        <div style="font-size:10px;color:#5a4a3a;margin-top:4px">${lang==='zh'?'订单号：'+orderId:'Order: '+orderId}</div>
+        <div id="payResult" style="margin-top:14px"></div>
+        <button onclick="closeModal()" style="margin-top:10px;padding:8px 20px;background:rgba(255,255,255,.05);border:1px solid #3a2a1e;border-radius:8px;color:#8a7050;font-size:12px;cursor:pointer">${lang==='zh'?'取消':'Cancel'}</button>
+      </div>`;
+      // Poll for payment status
+      let tries = 0;
+      const iv = setInterval(async ()=>{
+        tries++;
+        const sr = await fetch(API+'/v1/order/status?order_id='+orderId);
+        const sd = await sr.json();
+        if(sd.success && sd.data && sd.data.status === 'paid'){
+          clearInterval(iv);
+          document.getElementById('payResult').innerHTML = '<div style="font-size:48px;margin:10px 0">🎉</div><div style="font-size:16px;color:#4ae;font-weight:600">'+(lang==='zh'?'支付成功！':'Payment successful!')+'</div><div style="font-size:12px;color:#8a7050;margin:6px 0">'+(lang==='zh'?'你的 Key：'+sd.data.key:'Your Key: '+sd.data.key)+'</div><button onclick="closeModal()" style="padding:10px 24px;background:linear-gradient(135deg,#7b68ee,#5a4acd);color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;margin-top:6px">'+(lang==='zh'?'完成':'Done')+'</button>';
+        }
+        if(tries > 60){clearInterval(iv);document.getElementById('payResult').innerHTML='<div style="color:#dd8866;font-size:13px;margin-top:10px">'+(lang==='zh'?'支付超时，请重新尝试':'Payment timeout, please try again')+'</div>';}
+      }, 2000);
+    } else if(d.mock){
+      payMock();
+    } else {
+      alert('Failed: ' + (d.error || 'Unknown error'));
+      btn.disabled = false; btn.textContent = lang==='zh'?'📱 支付宝/微信支付':'📱 Alipay/WeChat';
+    }
+  }catch(e){
+    alert('Network error: ' + e.message);
+    btn.disabled = false; btn.textContent = lang==='zh'?'📱 支付宝/微信支付':'📱 Alipay/WeChat';
+  }
+}
+
+async function payMock(){
+  const buyerEmail = document.getElementById('buyerEmail').value.trim();
+  if(!buyerEmail){
+    alert(lang==='zh'?'请先填写邮箱':'Please enter your email');
+    return;
+  }
+  const buyerName = document.getElementById('buyerName').value.trim();
+  try{
+    const res = await fetch(API + '/v1/checkout/mock', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({package: selPkg, buyer_email: buyerEmail, buyer_name: buyerName}),
+    });
+    const d = await res.json();
+    if(d.success){
+      showKeyResult(d.data.key, d.data.package, d.data.quota);
+    }
+  }catch(e){alert('Error: ' + e.message)}
+}
+
+// Check for successful return from payment provider
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const oid = params.get('order_id');
+  const success = params.get('success');
+  const sub_email = params.get('sub_email');
+  const sub_plan = params.get('sub_plan');
+  if(oid && success){
+    if(sub_email && sub_plan){
+      // ─── 订阅支付回跳 ──
+      fetch(API + '/v1/checkout/subscribe-return?order_id=' + encodeURIComponent(oid) + '&sub_email=' + encodeURIComponent(sub_email) + '&sub_plan=' + encodeURIComponent(sub_plan), {method: 'POST'})
+        .then(r => r.json())
+        .then(d => {
+          if(d.success){
+            document.getElementById('modal').classList.add('show');
+            document.getElementById('payStep').style.display = 'none';
+            document.getElementById('keyResult').classList.add('show');
+            document.getElementById('keyDisplay').textContent = sub_email;
+            document.getElementById('resultBalance').textContent = lang==='zh'?'每日运势已激活':'Daily fortune activated';
+            document.getElementById('resultUsed').textContent = sub_plan;
+            document.getElementById('resultPkg').textContent = (lang==='zh'?'订阅成功！有效期至 ':'Active until ') + (d.data.end_date||'');
+            document.querySelector('#keyResult h2').textContent = '🎉 ' + (lang==='zh'?'订阅成功':'Subscribed!');
+            document.querySelector('#keyResult .sub').textContent = lang==='zh'?'每日运势将自动推送至此邮箱':'Daily fortune will be sent to this email';
+            document.querySelector('.go-test-btn').style.display = 'none';
+            // Clean URL
+            window.history.replaceState({}, '', API + '/shop.html');
+          }
+        });
+    } else {
+      // ─── Key套餐支付回跳（PayPal） ──
+      fetch(API + '/v1/checkout/paypal-return?order_id=' + encodeURIComponent(oid), {method: 'POST'})
+        .then(r => r.json())
+        .then(d => {
+          if(d.success && d.data && d.data.key){
+            document.getElementById('modal').classList.add('show');
+            document.getElementById('payStep').style.display = 'none';
+            showKeyResult(d.data.key, d.data.package, d.data.quota);
+          }
+        });
+    }
+  }
+})();
+
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+}
+
+function goToTest(){
+  // Save key to localStorage so index page picks it up
+  const key = document.getElementById('keyDisplay').textContent;
+  if (key && key !== 'zw_xxxx') {
+    localStorage.setItem('zw_last_key', key);
+    window.location.href = API + '/?key=' + encodeURIComponent(key);
+  } else {
+    window.location.href = API + '/';
+  }
+}
+function showKeyResult(key, pkgName, balance){
+  document.getElementById('keyResult').classList.add('show');
+  document.getElementById('payStep').style.display = 'none';
+  document.getElementById('keyDisplay').textContent = key;
+  document.getElementById('resultPkg').textContent = pkgName;
+  document.getElementById('resultBalance').textContent = balance;
+}
+function copyKey(){
+  var key = document.getElementById('keyDisplay').textContent;
+  navigator.clipboard.writeText(key).then(function() {
+    document.querySelector('.copy-btn').textContent = lang==='zh'?'✅ 已复制':'✅ Copied!';
+    setTimeout(function() {
+      document.querySelector('.copy-btn').textContent = lang==='zh'?'📋 复制 Key':'📋 Copy Key';
+    }, 2000);
+  });
+}
+function forgotKeyByOrder(){
+  const oid = document.getElementById('forgetKeyInput').value.trim();
+  const t = TEXT[lang];
+  if(!oid) return;
+  const result = document.getElementById('forgetResult');
+  result.style.display = 'block';
+  result.innerHTML = '<div style="color:#9a7850;font-size:13px">⏳ ' + (lang==='zh'?'查询中...':'Looking up...') + '</div>';
+  fetch(API + '/v1/order/status?order_id=' + encodeURIComponent(oid))
+    .then(r => r.json())
+    .then(d => {
+      if(d.success && d.data.api_key){
+        const ak = d.data.api_key;
+        result.innerHTML = '<div style="color:#f0e0c8;font-size:13px">' + t.forgetSuccess + ' <span style="color:#f0c060;font-family:monospace;font-size:15px;font-weight:700;display:block;margin-top:6px;word-break:break-all">' + ak + '</span>' +
+          '<div style="margin-top:8px;font-size:11px;color:#9a7850">' + (lang==='zh'?'状态：':'Status: ') + d.data.status + ' · ' + (lang==='zh'?'套餐：':'Package: ') + d.data.package + '</div>' +
+          '<div style="margin-top:8px;display:flex;gap:8px;justify-content:center"><button id="forgotCopyBtn" style="padding:6px 16px;border:1px solid #3a2a1e;border-radius:6px;background:transparent;color:#e8b860;font-size:12px;cursor:pointer">📋 ' + (lang==='zh'?'复制':'Copy') + '</button>' +
+          '<a href="' + API + '/?key=' + encodeURIComponent(ak) + '" style="padding:6px 16px;background:linear-gradient(135deg,#e8a040,#d4802a);color:#fff;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600">🌟 ' + (lang==='zh'?'去排盘':'Go to chart') + '</a></div></div>';
+        document.getElementById('forgotCopyBtn').onclick = function(){
+          navigator.clipboard.writeText(ak);
+          this.textContent = '✅';
+          this.style.borderColor = '#7ee0b0';
+        };
+      } else {
+        result.innerHTML = '<div style="color:#dd8866;font-size:13px">' + t.forgetError + '</div>';
+      }
+    })
+    .catch(e => {
+      result.innerHTML = '<div style="color:#dd8866;font-size:13px">' + (lang==='zh'?'网络错误':'Network error') + '</div>';
+    });
+}
+function toggleFaq(el){
+  el.classList.toggle('open');
+}
+async function queryKey(){
+  var input = document.getElementById('qKeyInput');
+  var key = input.value.trim();
+  if(!key) return;
+  var res = await fetch(API + '/v1/key/balance', {
+    headers: {'Authorization': 'Bearer ' + key}
+  });
+  var d = await res.json();
+  var result = document.getElementById('qResult');
+  result.style.display = 'block';
+  if(d.success){
+    result.innerHTML = '<div style="color:#f0e0c8;font-size:14px">' + (lang==='zh'?'余额':'Balance') + ': ' + d.balance + ' ' + (lang==='zh'?'次':'calls') + '</div>';
+  } else {
+    result.innerHTML = '<div style="color:#dd8866">' + (lang==='zh'?'Key无效':'Invalid key') + '</div>';
+  }
+}
+</script>
+
+<script>
+// 页面加载完成后隐藏 splash
+document.getElementById('splash').classList.add('hide');
+setTimeout(()=>{document.getElementById('splash').style.display='none'},500);
+</script>
+</body>
+</html>

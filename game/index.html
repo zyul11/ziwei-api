@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>紫薇游戏站 — Zi Wei Games</title>
+<meta name="description" content="基于紫薇斗数星曜体系的小游戏合集。每个游戏都是一张命盘，每一次游玩都是命运的探索。">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0a14;color:#d0d0e0;min-height:100vh}
+.header{text-align:center;padding:40px 20px 20px;border-bottom:1px solid rgba(255,255,255,.04)}
+.header h1{font-size:28px;font-weight:900;background:linear-gradient(135deg,#f0c080,#c084fc,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .sub{font-size:13px;color:#6b7280;margin-top:4px}
+.header .count{font-size:11px;color:#4b5563;margin-top:8px}
+.games{max-width:480px;margin:0 auto;padding:20px}
+.game-card{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;margin-bottom:12px;text-decoration:none;transition:all .2s;color:#d0d0e0}
+.game-card:hover{border-color:rgba(192,132,252,.3);background:rgba(192,132,252,.06);transform:translateY(-2px)}
+.game-card .icon{font-size:36px;width:48px;text-align:center}
+.game-card .info{flex:1}
+.game-card .name{font-size:15px;font-weight:700}
+.game-card .type{font-size:11px;color:#6b7280;margin-top:2px}
+.game-card .tag{display:inline-block;font-size:9px;padding:2px 8px;border-radius:4px;margin-top:4px;font-weight:600}
+.tag.rpg{background:rgba(192,132,252,.15);color:#c084fc}
+.tag.new{background:rgba(251,191,36,.15);color:#fbbf24}
+.fortune-cta{max-width:480px;margin:20px auto;padding:20px;background:linear-gradient(135deg,rgba(192,132,252,.08),rgba(96,165,250,.08));border:1px solid rgba(192,132,252,.15);border-radius:14px;text-align:center}
+.fortune-cta h3{font-size:16px;color:#f0c080;margin-bottom:4px}
+.fortune-cta p{font-size:12px;color:#6b7280;margin-bottom:12px}
+.fortune-cta .btn{display:inline-block;padding:10px 24px;border-radius:10px;background:linear-gradient(135deg,#c084fc,#60a5fa);color:#fff;font-size:13px;font-weight:700;text-decoration:none;transition:all .2s}
+.fortune-cta .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.footer{text-align:center;padding:20px;font-size:11px;color:#4b5563}
+.footer a{color:#6b7280;text-decoration:none}
+.footer a:hover{color:#c084fc}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🎮 紫薇游戏站</h1>
+  <div class="sub">每款游戏都是一张命盘 · 在游玩中认识你的星辰</div>
+  <div class="count">✨ 已上线 <strong id="gameCount">1</strong> 款 · 持续更新中</div>
+</div>
+
+<div class="games" id="gameList">
+  <a class="game-card" href="ziwei-rpg.html">
+    <div class="icon">👑</div>
+    <div class="info">
+      <div class="name">紫薇天命 RPG</div>
+      <div class="type">放置RPG · 14种命盘职业 · 12宫闯关</div>
+      <div><span class="tag rpg">RPG</span> <span class="tag new">NEW</span></div>
+    </div>
+  </a>
+</div>
+
+<div class="fortune-cta">
+  <h3>🔮 今日运势</h3>
+  <p>想知道你今天是什么星运？输入出生时间，紫薇斗数为你解密。</p>
+  <a class="btn" href="https://ziweiapi.site" target="_blank">查看今日运势 →</a>
+</div>
+
+<div class="footer">
+  <a href="https://ziweiapi.site">紫薇斗数主站</a> · 
+  <a href="https://ziweiapi.site/shop.html">订阅每日运势</a>
+</div>
+
+<script>
+document.getElementById('gameCount').textContent = document.querySelectorAll('.game-card').length;
+</script>
+</body>
+</html>

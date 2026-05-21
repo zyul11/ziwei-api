@@ -1,0 +1,458 @@
+{
+  "meta": {
+    "generated_at": "2026-05-20",
+    "source": "gefei-seo-deep-kb.md (v2.3)",
+    "total_rules": 27,
+    "note": "Rules marked experimental are not scored — they appear as reference suggestions only"
+  },
+  "core": [
+    {
+      "id": "https",
+      "name": "HTTPS Enabled",
+      "category": "security",
+      "description": "SSL certificate and HTTPS redirect",
+      "weight": 10,
+      "confidence": "core",
+      "source": "HTML standard",
+      "threshold": {
+        "must_have": true
+      }
+    },
+    {
+      "id": "viewport",
+      "name": "Mobile Viewport Meta",
+      "category": "mobile",
+      "description": "Viewport meta tag for responsive design",
+      "weight": 8,
+      "confidence": "core",
+      "source": "HTML standard",
+      "threshold": {
+        "must_have": true
+      }
+    },
+    {
+      "id": "charset",
+      "name": "Charset UTF-8",
+      "category": "technical",
+      "description": "UTF-8 charset declared early in head",
+      "weight": 3,
+      "confidence": "core",
+      "source": "HTML standard",
+      "threshold": {
+        "must_have": true
+      }
+    },
+    {
+      "id": "canonical",
+      "name": "Canonical URL",
+      "category": "technical",
+      "description": "Canonical tag pointing to self",
+      "weight": 5,
+      "confidence": "core",
+      "source": "HTML standard",
+      "threshold": {
+        "must_have": true
+      },
+      "needs_review": true
+    }
+  ],
+  "knowledge_high": [
+    {
+      "id": "title",
+      "name": "Title Tag (Meta Title)",
+      "category": "onpage",
+      "description": "Every page must have a unique title with primary keyword first",
+      "weight": 12,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/Title (重中之重)",
+      "threshold": {
+        "min_length": 30,
+        "max_length": 60
+      },
+      "suggestion": "每个页面title不同，含核心关键词，60字符以内，主关键词放前面",
+      "needs_review": true
+    },
+    {
+      "id": "meta_desc",
+      "name": "Meta Description",
+      "category": "onpage",
+      "description": "Unique description per page, 155 chars max, with call to action",
+      "weight": 10,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/Description",
+      "threshold": {
+        "min_length": 100,
+        "max_length": 155
+      },
+      "suggestion": "155字符以内，含行动号召，让用户一眼想点进来",
+      "needs_review": true
+    },
+    {
+      "id": "h1_unique",
+      "name": "H1 Heading",
+      "category": "onpage",
+      "description": "Exactly one H1 per page, containing primary keyword",
+      "weight": 8,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/H标签层级",
+      "threshold": {
+        "exactly_one": true
+      },
+      "needs_review": true
+    },
+    {
+      "id": "heading_hierarchy",
+      "name": "Heading Hierarchy (H1→H2→H3)",
+      "category": "onpage",
+      "description": "H1 → H2 main sections → H3 subsections",
+      "weight": 5,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/H标签层级",
+      "threshold": {
+        "min_h2": 1
+      },
+      "needs_review": true
+    },
+    {
+      "id": "image_alt",
+      "name": "Image Alt Attributes",
+      "category": "onpage",
+      "description": "Every image must have descriptive alt text",
+      "weight": 3,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/图片SEO",
+      "threshold": {
+        "missing_alt_max": 0
+      },
+      "needs_review": true
+    },
+    {
+      "id": "jsonld",
+      "name": "JSON-LD Structured Data",
+      "category": "technical",
+      "description": "At least one structured data block (Article/FAQ/Product/HowTo as appropriate)",
+      "weight": 8,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/Schema结构化数据",
+      "threshold": {
+        "min_count": 1
+      },
+      "needs_review": true
+    },
+    {
+      "id": "og_tags",
+      "name": "Open Graph Tags",
+      "category": "social",
+      "description": "og:title, og:description, og:image, og:url, og:type",
+      "weight": 5,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/OG_Twitter_Card",
+      "threshold": {
+        "min_og_count": 3
+      },
+      "needs_review": true
+    },
+    {
+      "id": "twitter_card",
+      "name": "Twitter Card Tags",
+      "category": "social",
+      "description": "twitter:card (summary_large_image), twitter:title",
+      "weight": 3,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/OG_Twitter_Card",
+      "threshold": {
+        "min_twitter_count": 2
+      },
+      "needs_review": true
+    },
+    {
+      "id": "robots_meta",
+      "name": "Robots Meta (noindex check)",
+      "category": "technical",
+      "description": "Page should not have noindex/nofollow unless intentional",
+      "weight": 15,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/完整检查清单",
+      "threshold": {
+        "no_noindex": true
+      }
+    },
+    {
+      "id": "robots_txt",
+      "name": "robots.txt",
+      "category": "technical",
+      "description": "robots.txt accessible and properly configured (multilingual entries if multi-lang site)",
+      "weight": 3,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/robots.txt多语言陷阱",
+      "threshold": {
+        "must_exist": true
+      },
+      "needs_review": true
+    },
+    {
+      "id": "sitemap",
+      "name": "sitemap.xml",
+      "category": "technical",
+      "description": "XML sitemap accessible and submitted to GSC",
+      "weight": 4,
+      "confidence": "high",
+      "source": "gefei-kb/技术SEO/完整检查清单",
+      "threshold": {
+        "must_exist": true
+      }
+    },
+    {
+      "id": "internal_links",
+      "name": "Internal Links",
+      "category": "onpage",
+      "description": "Every page should link to homepage; homepage should list subpages; anchor text uses keywords",
+      "weight": 3,
+      "confidence": "high",
+      "source": "gefei-kb/站内SEO/内链建设",
+      "threshold": {
+        "min_internal_links": 1
+      },
+      "needs_review": true
+    },
+    {
+      "id": "content_length",
+      "name": "Content Length",
+      "category": "content",
+      "description": "Minimum 600 words per page for substantive content",
+      "weight": 8,
+      "confidence": "high",
+      "source": "gefei-kb/内容策略/单页内容标准",
+      "threshold": {
+        "min_words": 600
+      },
+      "needs_review": true
+    }
+  ],
+  "knowledge_medium": [
+    {
+      "id": "page_speed",
+      "name": "Page Speed (estimated)",
+      "category": "performance",
+      "description": "Loading speed under 3 seconds, compressed images, caching enabled",
+      "weight": 5,
+      "confidence": "medium",
+      "source": "gefei-kb/谷歌排名机制/谷歌喜欢的页面特征",
+      "suggestion": "加载速度<3秒，压缩图片，启用缓存。详见 ux-optimization-guide.md"
+    },
+    {
+      "id": "hreflang",
+      "name": "hreflang Tags",
+      "category": "technical",
+      "description": "Proper hreflang annotations for multilingual sites (subdirectory structure preferred)",
+      "weight": 4,
+      "confidence": "medium",
+      "source": "gefei-kb/技术SEO/hreflang",
+      "threshold": {
+        "multi_lang_sites_only": true
+      }
+    },
+    {
+      "id": "faq_schema",
+      "name": "FAQPage Schema",
+      "category": "content",
+      "description": "FAQPage structured data for question-based content to boost SERP CTR",
+      "weight": 2,
+      "confidence": "medium",
+      "source": "gefei-kb/技术SEO/Schema结构化数据",
+      "suggestion": "FAQPage最常用，让搜索结果直接展开Q&A，提升CTR",
+      "needs_review": true
+    },
+    {
+      "id": "homepage_not_bloated",
+      "name": "Homepage Content Focus",
+      "category": "content",
+      "description": "Homepage should not bloat with full article content; maintain keyword density",
+      "weight": 4,
+      "confidence": "medium",
+      "source": "gefei-kb/避坑指南/首页膨胀降权",
+      "suggestion": "首页保持主题集中，不要堆砌内页全文。ChatGPT4o.ai案例：首页400词→2000词后降权",
+      "needs_review": true
+    },
+    {
+      "id": "dead_links",
+      "name": "No Dead Links",
+      "category": "technical",
+      "description": "All internal/external links should return 200",
+      "weight": 4,
+      "confidence": "medium",
+      "source": "gefei-kb/技术SEO/完整检查清单",
+      "threshold": {
+        "max_dead_links": 0
+      }
+    },
+    {
+      "id": "back_button_hijacking",
+      "name": "No Back Button Hijacking",
+      "category": "technical",
+      "description": "Google April 2026 spam policy: sites that hijack the back button face spam actions",
+      "weight": 6,
+      "confidence": "medium",
+      "source": "Google Search Central Blog 2026-04 (via monitor_seo_sources.py)",
+      "suggestion": "不要拦截返回按钮、不要用 beforeunload 弹窗、不要用 pushState 创建导航循环"
+    }
+  ],
+  "industry_overrides": {
+    "tool": {
+      "label_zh": "工具站",
+      "label_en": "Online Tool",
+      "description": "计算器、生成器、转换器、检查器等在线工具",
+      "weight_adjustments": {
+        "internal_links": 2,
+        "og_tags": 1,
+        "page_speed": 3,
+        "large_image": 1,
+        "content_length": -5,
+        "heading_hierarchy": -2
+      },
+      "extra_rules": [
+        {
+          "id": "tool_result_display",
+          "name": "Tool Result Display Area",
+          "weight": 3,
+          "confidence": "medium",
+          "source": "gefei-kb/实战案例/工具站",
+          "scored": true,
+          "description": "Tool should have clear input form and visible result display area"
+        },
+        {
+          "id": "tool_navigation",
+          "name": "Tool Navigation Structure",
+          "weight": 2,
+          "confidence": "medium",
+          "source": "gefei-kb/建站SOP/内页和内链",
+          "scored": true,
+          "description": "Tool site needs clear navigation: category nav, related tools, footer"
+        }
+      ],
+      "override_thresholds": {
+        "content_length": {
+          "min_words": 200
+        }
+      }
+    },
+    "blog": {
+      "label_zh": "内容站 / 博客",
+      "label_en": "Blog / Content Site",
+      "description": "文章、教程、指南、新闻等以内容为主的站",
+      "weight_adjustments": {
+        "content_length": 3,
+        "heading_hierarchy": 2,
+        "jsonld": 2,
+        "faq_schema": 2,
+        "hreflang": 2,
+        "internal_links": 1,
+        "canonical": 1,
+        "page_speed": -1
+      },
+      "extra_rules": [],
+      "override_thresholds": {
+        "content_length": {
+          "min_words": 800
+        }
+      }
+    },
+    "ecommerce": {
+      "label_zh": "电商站",
+      "label_en": "E-commerce",
+      "description": "在线商店、产品页、分类页",
+      "weight_adjustments": {
+        "jsonld": 2,
+        "canonical": 2,
+        "image_alt": 2,
+        "internal_links": 1,
+        "robots_txt": 1,
+        "hreflang": 1
+      },
+      "extra_rules": [
+        {
+          "id": "product_schema",
+          "name": "Product Schema Markup",
+          "weight": 5,
+          "confidence": "high",
+          "source": "gefei-kb/技术SEO/Schema结构化数据",
+          "scored": true,
+          "description": "Product pages should have Product schema with name, price, availability"
+        }
+      ],
+      "override_thresholds": {
+        "content_length": {
+          "min_words": 300
+        }
+      }
+    },
+    "saas": {
+      "label_zh": "SaaS / 落地页",
+      "label_en": "SaaS / Landing Page",
+      "description": "产品官网、注册页、定价页",
+      "weight_adjustments": {
+        "og_tags": 2,
+        "page_speed": 2,
+        "content_length": -2,
+        "canonical": 1,
+        "jsonld": 1
+      },
+      "extra_rules": [],
+      "override_thresholds": {}
+    },
+    "general": {
+      "label_zh": "通用",
+      "label_en": "General",
+      "description": "未匹配特定行业类型的网站",
+      "weight_adjustments": {},
+      "extra_rules": [],
+      "override_thresholds": {}
+    }
+  },
+  "experimental": [
+    {
+      "id": "large_image",
+      "name": "Page Hero Image > A4 Size",
+      "category": "content",
+      "description": "Every page should include one large image (>A4 dimensions) for image search traffic",
+      "weight": 1,
+      "confidence": "experimental",
+      "source": "gefei-kb/站内SEO/图片SEO",
+      "scored": false,
+      "suggestion": "每页放一张大图（大于A4尺寸），冲击Google图片搜索",
+      "needs_review": true
+    },
+    {
+      "id": "title_brand_suffix",
+      "name": "Title Brand Suffix",
+      "category": "onpage",
+      "description": "Title tag may include brand name as suffix",
+      "weight": 1,
+      "confidence": "experimental",
+      "source": "gefei-kb/站内SEO/Title",
+      "scored": false
+    },
+    {
+      "id": "browser_plugin",
+      "name": "Browser Plugin for Retention",
+      "category": "growth",
+      "description": "Tool site should have companion browser extension to retain users",
+      "weight": 0,
+      "confidence": "experimental",
+      "source": "gefei-kb/变现路径/浏览器插件+网站",
+      "scored": false,
+      "suggestion": "Custom Cursor案例：网站+插件，周活400万，年广告收入12万美元"
+    },
+    {
+      "id": "user_generated_content",
+      "name": "User-Generated Content Gallery",
+      "category": "content",
+      "description": "AI tool should display user-generated results on public pages for organic indexing",
+      "weight": 1,
+      "confidence": "experimental",
+      "source": "gefei-kb/内容策略/内容型AI工具站",
+      "scored": false,
+      "suggestion": "用户使用AI工具→内容出现在广场→Google收录→更多流量飞轮"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5545263418745440" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Articles - Chinese Astrology & Tarot Comparison | Ziwei API</title>
+<meta name="description" content="English articles exploring Chinese Ba Zi, Ziwei Doushu, and comparisons with Western tarot and astrology. Free birth chart readings and fortune analysis.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://ziweiapi.site/articles/en/">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a14;color:#d0c8e0;min-height:100vh;line-height:1.6}
+.container{max-width:800px;margin:0 auto;padding:20px}
+h1{color:#64c896;font-size:22px;margin:30px 0 6px;letter-spacing:1px}
+.sub{color:#7a6a9a;font-size:12px;margin-bottom:24px;letter-spacing:.5px}
+.article-list{list-style:none}
+.article-item{background:linear-gradient(135deg,rgba(26,26,46,.93),rgba(16,16,30,.93));border:1px solid rgba(100,200,150,.15);border-radius:10px;padding:14px 18px;margin-bottom:10px;transition:border-color .2s}
+.article-item:hover{border-color:#64c896}
+.article-item a{text-decoration:none;color:#d0c8e0;display:block}
+.article-item .date{font-size:11px;color:#7a6a9a;letter-spacing:1px}
+.article-item .title{font-size:15px;color:#64c896;margin:4px 0;font-weight:500}
+.back{display:inline-block;margin-top:30px;color:#7a6a9a;font-size:12px;text-decoration:none}
+.back:hover{color:#64c896}
+.footer{text-align:center;padding:30px 0;color:#3a2a5a;font-size:11px;margin-top:20px}
+.footer a{color:#5a4a7a;text-decoration:none}
+.footer a:hover{color:#64c896}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📖 English Articles</h1>
+  <div class="sub">Chinese astrology · Ba Zi · Ziwei Doushu · Tarot comparisons</div>
+  <ul class="article-list" id="articleList"></ul>
+  <a href="/articles/" class="back">← All Articles</a>
+  <div class="footer">
+    <p><a href="/">Ziwei API Home</a> | <a href="/tools/">Free Tools</a> | <a href="/privacy.html">Privacy</a></p>
+    <p style="margin-top:6px;font-size:10px">© 2026 Ziwei API</p>
+  </div>
+</div>
+<script>
+const articles = [
+  { date:'2026-05-18', file:'20260518-the-fools-journey-comparing-tarot-with-chinese-zodiac-destin', title:'The Fool\'s Journey: Comparing Tarot Major Arcana with Chinese Zodiac Destiny', desc:'Exploring how the Tarot Fool\'s journey mirrors Chinese zodiac destiny cycles and Ba Zi transformations.' },
+  { date:'2026-05-18', file:'20260518-tarot-tower-vs-chinese-daxian-predicting-lifes-crises', title:'Tarot Tower vs. Chinese Da Xian: Predicting Life\'s Sudden Crises', desc:'Comparing the Tarot Tower card with Chinese Da Xian (big limit) in Ziwei Doushu for predicting life upheavals.' },
+  { date:'2026-05-18', file:'20260518-tarot-death-card-meaning-vs-chinese-ba-zi-transformation-cyc', title:'Tarot Death Card Meaning vs. Chinese Ba Zi Transformation Cycles', desc:'Deep dive into the Tarot Death card\'s true meaning through the lens of Chinese Ba Zi transformation cycles.' }
+];
+const list = document.getElementById('articleList');
+articles.forEach(a => {
+  const li = document.createElement('li');
+  li.className = 'article-item';
+  li.innerHTML = `<a href="/articles/en/${a.file}.html"><div class="date">${a.date}</div><div class="title">${a.title}</div><div class="desc">${a.desc}</div></a>`;
+  list.appendChild(li);
+});
+</script>
+</body>
+</html>

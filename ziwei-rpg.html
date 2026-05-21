@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>紫薇天命 — Zi Wei Destiny RPG</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0a14;color:#d0d0e0;min-height:100vh;overflow-x:hidden}
+
+/* ── Screen System ── */
+.screen{display:none;animation:fadeIn .4s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Container ── */
+.game{max-width:400px;margin:0 auto;padding:16px;min-height:100vh;position:relative}
+
+/* ── Title Screen ── */
+.title-screen{text-align:center;padding:60px 0 20px}
+.title-screen h1{font-size:36px;font-weight:900;background:linear-gradient(135deg,#f0c080,#c084fc,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;letter-spacing:4px}
+.title-screen .sub{font-size:13px;color:#6b7280;margin-bottom:20px}
+.title-screen .lotus{font-size:64px;margin-bottom:16px;opacity:.8}
+.title-btn{display:block;width:100%;padding:14px;border-radius:12px;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:10px;transition:all .2s}
+.title-btn:hover{transform:translateY(-2px)}
+.title-btn.primary{background:linear-gradient(135deg,#c084fc,#60a5fa);color:#fff}
+.title-btn.secondary{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.08)}
+
+/* ── 命盘 Reveal ── */
+.reveal{text-align:center;padding:30px 0 10px}
+.reveal .wheel{width:200px;height:200px;border-radius:50%;border:2px solid rgba(192,132,252,.3);margin:0 auto 20px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(192,132,252,.08) 0%,transparent 70%)}
+.reveal .wheel-inner{text-align:center}
+.reveal .wheel-inner .big-icon{font-size:56px}
+.reveal .wheel-inner .star-name{font-size:22px;font-weight:700;color:#f0c080;margin-top:4px}
+.reveal .wheel-inner .star-class{font-size:12px;color:#9ca3af}
+.reveal .wheel .orb{position:absolute;width:10px;height:10px;border-radius:50%;background:rgba(192,132,252,.3);animation:orbit 6s linear infinite}
+@keyframes orbit{from{transform:rotate(0deg) translateX(90px) rotate(0deg)}to{transform:rotate(360deg) translateX(90px) rotate(-360deg)}}
+
+.reveal-stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.reveal-stats .tag{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+.reveal-stats .tag.hua{background:rgba(249,168,212,.12);border-color:rgba(249,168,212,.2);color:#f9a8d4}
+.reveal-stats .tag.shen{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.2);color:#93c5fd}
+
+/* ── HUD ── */
+.hud{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:10px}
+.hud .info{flex:1}
+.hud .lv{font-size:11px;color:#6b7280}
+.hud .lv strong{color:#d0d0e0;font-size:13px}
+.hud .hp-bar{height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin:4px 0;overflow:hidden;max-width:140px}
+.hud .hp-bar .fill{height:100%;background:linear-gradient(90deg,#f87171,#fb923c);border-radius:2px;transition:width .3s}
+.hud .exp-bar{height:3px;background:rgba(255,255,255,.04);border-radius:2px;margin:2px 0;overflow:hidden;max-width:140px}
+.hud .exp-bar .fill{height:100%;background:linear-gradient(90deg,#60a5fa,#c084fc);border-radius:2px;transition:width .3s}
+.hud .star-icon{font-size:32px;margin-right:8px}
+
+/* ── Stats Panel ── */
+.stats-panel{background:rgba(255,255,255,.03);border-radius:10px;padding:12px;margin-bottom:10px;border:1px solid rgba(255,255,255,.04)}
+.stats-panel .row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:#9ca3af}
+.stats-panel .row .val{color:#d0d0e0;font-weight:600}
+
+/* ── Battle Log ── */
+.battle-log{background:rgba(0,0,0,.3);border-radius:10px;padding:12px;height:140px;overflow-y:auto;margin-bottom:10px;border:1px solid rgba(255,255,255,.04);font-size:12px;line-height:1.8}
+.battle-log .entry{opacity:.7}
+.battle-log .entry.dmg{color:#f87171}
+.battle-log .entry.heal{color:#34d399}
+.battle-log .entry.buff{color:#93c5fd}
+.battle-log .entry.loot{color:#fbbf24}
+.battle-log .entry.warn{color:#fb923c}
+.battle-log .entry.info{color:#9ca3af}
+.battle-log .entry:first-child{opacity:1}
+
+/* ── Enemy ── */
+.enemy-area{text-align:center;padding:16px 0;margin-bottom:10px;background:rgba(255,255,255,.02);border-radius:12px;border:1px solid rgba(255,255,255,.04)}
+.enemy-area .enemy-icon{font-size:44px;margin-bottom:4px}
+.enemy-area .enemy-name{font-size:14px;font-weight:700;color:#f87171}
+.enemy-area .enemy-hp{height:5px;background:rgba(255,255,255,.06);border-radius:3px;margin:6px auto;max-width:200px;overflow:hidden}
+.enemy-area .enemy-hp .fill{height:100%;background:linear-gradient(90deg,#f87171,#ef4444);border-radius:3px;transition:width .3s}
+.enemy-area .enemy-lv{font-size:10px;color:#6b7280}
+
+/* ── Actions ── */
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.actions button{padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.actions button:active{transform:scale(.96)}
+.actions .atk{background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.15)}
+.actions .skill{background:rgba(96,165,250,.12);color:#93c5fd;border:1px solid rgba(96,165,250,.12)}
+.actions .heal{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.12)}
+.actions .auto{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.1)}
+.actions .rest{background:rgba(255,255,255,.04);color:#6b7280;border:1px solid rgba(255,255,255,.04)}
+.actions .full{grid-column:1/-1;background:rgba(167,139,250,.12);color:#a78bfa;border:1px solid rgba(167,139,250,.15)}
+
+/* ── Skill Info ── */
+.skill-info{font-size:10px;color:#6b7280;text-align:center;padding:4px;margin-bottom:8px;background:rgba(255,255,255,.02);border-radius:6px}
+
+/* ── Level Up ── */
+.lvup-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);z-index:100;display:none;align-items:center;justify-content:center}
+.lvup-overlay.show{display:flex}
+.lvup-box{text-align:center;padding:30px;max-width:340px}
+.lvup-box .big{font-size:48px;margin-bottom:8px}
+.lvup-box h2{font-size:24px;color:#fbbf24;margin-bottom:4px}
+.lvup-box .sub{font-size:13px;color:#9ca3af;margin-bottom:12px}
+.lvup-box .effect{font-size:14px;color:#34d399;margin-bottom:8px}
+.lvup-box .hua-event{background:rgba(249,168,212,.1);border:1px solid rgba(249,168,212,.15);border-radius:10px;padding:12px;margin-bottom:12px}
+.lvup-box .hua-event .hua-title{font-size:14px;font-weight:700;color:#f9a8d4;margin-bottom:4px}
+.lvup-box .hua-event .hua-desc{font-size:11px;color:#d0d0e0}
+.lvup-box button{padding:10px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#c084fc,#60a5fa);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ── Game Over ── */
+.gameover{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.9);z-index:100;display:none;align-items:center;justify-content:center}
+.gameover.show{display:flex}
+.gameover-box{text-align:center;padding:30px}
+.gameover-box .icon{font-size:64px;margin-bottom:8px}
+.gameover-box h2{font-size:22px;color:#f87171;margin-bottom:4px}
+.gameover-box .sub{font-size:13px;color:#9ca3af;margin-bottom:16px}
+.gameover-box button{padding:10px 32px;border-radius:10px;border:none;background:linear-gradient(135deg,#c084fc,#60a5fa);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ── Fight Animation ── */
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .3s ease}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:.3}}
+.flash{animation:flash .2s ease 3}
+
+/* ── Scrollbar ── */
+.battle-log::-webkit-scrollbar{width:3px}
+.battle-log::-webkit-scrollbar-track{background:transparent}
+.battle-log::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+/* ── Floor Indicator ── */
+.floor-indicator{text-align:center;padding:6px 0;font-size:11px;color:#6b7280;letter-spacing:2px}
+.floor-indicator .floor-num{color:#a78bfa;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="game" id="app">
+
+  <!-- Screen: Title -->
+  <div class="screen active" id="screenTitle">
+    <div class="title-screen">
+      <div class="lotus">☯</div>
+      <h1>紫薇天命</h1>
+      <div class="sub">Zi Wei Destiny · 你的命盘即是你的职业</div>
+      <button class="title-btn primary" onclick="startGame()">⚡ 开启命盘 · 开始冒险</button>
+      <button class="title-btn secondary" onclick="document.getElementById('screenTitle').classList.remove('active');document.getElementById('screenAbout').classList.add('active')">ℹ️ 关于本游戏</button>
+    </div>
+  </div>
+
+  <!-- Screen: About -->
+  <div class="screen" id="screenAbout">
+    <div class="title-screen" style="padding-top:30px">
+      <div class="lotus" style="font-size:36px">🎮</div>
+      <h1 style="font-size:22px">玩法说明</h1>
+      <div style="text-align:left;font-size:12px;color:#9ca3af;line-height:1.8;margin-top:12px;padding:0 10px">
+        <p>📜 <strong>命盘即职业</strong><br>每次开局随机生成一张紫薇命盘，你的命宫主星决定你的职业和技能。</p><br>
+        <p>⚔️ <strong>战斗闯关</strong><br>逐层挑战煞星守卫，每层有随机的煞星敌人。击败敌人获得经验。</p><br>
+        <p>✨ <strong>四化觉醒</strong><br>升级时有概率触发四化（化禄/化权/化科/化忌），带来不同的命运转折。</p><br>
+        <p>🏛️ <strong>12 宫征程</strong><br>从命宫出发，逐一突破 12 宫位。每宫有镇守 Boss。</p><br>
+        <p>🔄 <strong>每个存档独一无二</strong><br>因为命盘是随机生成的，每一次开局都是全新的命运。</p>
+      </div>
+      <button class="title-btn primary" onclick="startGame()" style="margin-top:20px">⚡ 开启命盘</button>
+      <button class="title-btn secondary" onclick="document.getElementById('screenAbout').classList.remove('active');document.getElementById('screenTitle').classList.add('active')">← 返回</button>
+    </div>
+  </div>
+
+  <!-- Screen: 命盘 Reveal -->
+  <div class="screen" id="screenReveal">
+    <div class="reveal">
+      <div class="wheel" id="wheelEl">
+        <div class="orb" id="wheelOrb"></div>
+        <div class="wheel-inner">
+          <div class="big-icon" id="revealIcon">🌟</div>
+          <div class="star-name" id="revealStar">—</div>
+          <div class="star-class" id="revealClass">—</div>
+        </div>
+      </div>
+      <div class="reveal-stats" id="revealTags"></div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:16px;padding:0 10px;line-height:1.6" id="revealDesc"></div>
+      <button class="title-btn primary" onclick="enterDungeon()">⚔️ 踏入命宫 · 开始征程</button>
+    </div>
+  </div>
+
+  <!-- Screen: Game -->
+  <div class="screen" id="screenGame">
+    <!-- HUD -->
+    <div class="hud">
+      <div class="star-icon" id="hudIcon">🌟</div>
+      <div class="info">
+        <div class="lv">Lv.<strong id="hudLv">1</strong> · <span id="hudName">—</span> · <span id="hudClass" style="color:#93c5fd">—</span></div>
+        <div class="hp-bar"><div class="fill" id="hpBar" style="width:100%"></div></div>
+        <div style="font-size:10px;color:#6b7280;display:flex;justify-content:space-between;max-width:140px">
+          <span id="hpText">100/100</span>
+          <span id="hudFloor">命宫</span>
+        </div>
+        <div class="exp-bar"><div class="fill" id="expBar" style="width:0%"></div></div>
+        <div style="font-size:9px;color:#6b7280" id="expText">EXP: 0/100</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-panel">
+      <div class="row"><span>⚔️ 攻击</span><span class="val" id="statAtk">10</span></div>
+      <div class="row"><span>🛡️ 防御</span><span class="val" id="statDef">5</span></div>
+      <div class="row"><span>❤️ 生命</span><span class="val" id="statHp">100</span></div>
+      <div class="row"><span>💫 身宫</span><span class="val" id="statShen">—</span></div>
+      <div class="row" id="huaRow"><span>✨ 四化</span><span class="val" id="statHua">—</span></div>
+    </div>
+
+    <!-- Enemy -->
+    <div class="enemy-area" id="enemyArea">
+      <div class="enemy-icon" id="enemyIcon">👹</div>
+      <div class="enemy-name" id="enemyName">煞星 · 贪狼</div>
+      <div class="enemy-lv" id="enemyLv">Lv.1</div>
+      <div class="enemy-hp"><div class="fill" id="enemyHpBar" style="width:100%"></div></div>
+      <div style="font-size:10px;color:#f87171;margin-top:2px" id="enemyHpText">100/100</div>
+    </div>
+
+    <!-- Skills -->
+    <div class="skill-info" id="skillInfo">⚔️ 普通攻击 · 💫 星辰技（CD: 3回合）</div>
+
+    <!-- Battle Log -->
+    <div class="battle-log" id="battleLog">
+      <div class="entry info">☯ 踏入命宫，天命已启...</div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="atk" id="btnAtk" onclick="playerAttack()">⚔️ 攻击</button>
+      <button class="skill" id="btnSkill" onclick="playerSkill()">💫 星辰技</button>
+      <button class="heal" id="btnHeal" onclick="playerHeal()">💚 调息</button>
+      <button class="auto" id="btnAuto" onclick="toggleAuto()" data-auto="0">▶ 自动战斗</button>
+    </div>
+    <div class="floor-indicator" id="floorIndicator">—</div>
+  </div>
+
+</div>
+
+<!-- Level Up Overlay -->
+<div class="lvup-overlay" id="lvupOverlay">
+  <div class="lvup-box">
+    <div class="big" id="lvupIcon">⬆</div>
+    <h2 id="lvupTitle">升级！</h2>
+    <div class="sub" id="lvupSub">Lv.X → Lv.X</div>
+    <div class="effect" id="lvupEffect">全属性 + 5%</div>
+    <div class="hua-event" id="lvupHua" style="display:none">
+      <div class="hua-title" id="huaTitle">✨ 化禄 · 天赐</div>
+      <div class="hua-desc" id="huaDesc">你的财运运势提升，额外获得金币加成！</div>
+    </div>
+    <button onclick="closeLvup()">继续冒险</button>
+  </div>
+</div>
+
+<!-- Game Over Overlay -->
+<div class="gameover" id="gameoverOverlay">
+  <div class="gameover-box">
+    <div class="icon">💀</div>
+    <h2>命数已尽</h2>
+    <div class="sub" id="gameoverStats">你止步于 命宫 · Lv.3</div>
+    <button onclick="location.reload()">🔄 重开命盘</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// 紫薇星曜数据库
+// ══════════════════════════════════════
+
+const STARS = [
+  { id:'ziwei', name:'紫微', icon:'👑', class:'王者', desc:'帝星坐命，天生领袖。统御力极强，血厚防高，是团队的盾墙。', atk:8, def:10, hp:130, skillName:'帝威镇天', skillDesc:'以帝王之气震慑敌人，造成2倍伤害并降低敌人攻击', shenBonus:'每升5级额外+1防御' },
+  { id:'tianji', name:'天机', icon:'🕊️', class:'谋士', desc:'智星化气为善，运筹帷幄。善控场，战斗中能洞察敌人弱点。', atk:11, def:6, hp:90, skillName:'天机算尽', skillDesc:'识破破绽，造成1.8倍伤害，下回合暴击率翻倍', shenBonus:'暴击率额外+5%' },
+  { id:'taiyang', name:'太阳', icon:'☀️', class:'圣骑士', desc:'光明之曜，普照万物。攻守兼备，自带回血光环。', atk:10, def:8, hp:110, skillName:'普照天下', skillDesc:'释放太阳之力，恢复20%生命并对敌人造成1.3倍伤害', shenBonus:'每回合自动恢复2%HP' },
+  { id:'wuqu', name:'武曲', icon:'⚔️', class:'武者', desc:'刚毅之星，百折不挠。纯粹的物理输出，追求极致攻击。', atk:14, def:5, hp:100, skillName:'破军一击', skillDesc:'集中全力一击，造成2.2倍伤害，无视20%防御', shenBonus:'攻击额外+10%' },
+  { id:'tiantong', name:'天同', icon:'💚', class:'愈者', desc:'福星照命，化气为福。最强的治愈能力，团队的续航保证。', atk:6, def:7, hp:100, skillName:'福星高照', skillDesc:'恢复35%生命并清除一层负面状态', shenBonus:'治疗量额外+15%' },
+  { id:'lianzhen', name:'廉贞', icon:'🔥', class:'炎术士', desc:'次桃花星，化气为囚。善用火焰之力灼烧敌人，持续伤害。', atk:13, def:5, hp:95, skillName:'业火燎原', skillDesc:'灼烧敌人，立即造成1.5倍伤害并附加2回合燃烧（每回合8%HP）', shenBonus:'燃烧伤害额外+3%' },
+  { id:'tianfu', name:'天府', icon:'🏛️', class:'守护者', desc:'令星之曜，库藏之主。最坚固的防御，团队的钢铁壁垒。', atk:7, def:12, hp:120, skillName:'天府之壁', skillDesc:'展开守护屏障，本回合防御翻倍并反击敌人', shenBonus:'防御额外+10%' },
+  { id:'taiyin', name:'太阴', icon:'🌙', class:'幻影', desc:'月之精粹，化气为柔。极致的速度与闪避，来去无影。', atk:12, def:4, hp:85, skillName:'月影千幻', skillDesc:'幻影分身，造成1.6倍伤害并且本回合30%概率闪避攻击', shenBonus:'闪避率额外+5%' },
+  { id:'tanlang', name:'贪狼', icon:'🐺', class:'猎手', desc:'桃花煞曜，欲望之力。高风险高回报的爆发型战士。', atk:15, def:3, hp:90, skillName:'贪狼噬月', skillDesc:'赌上一切的一击，造成2.5倍伤害但自身也受到10%反噬', shenBonus:'暴击伤害额外+20%' },
+  { id:'jumen', name:'巨门', icon:'🔮', class:'咒术师', desc:'暗曜化气为暗，口舌之星。善于施加负面状态削弱敌人。', atk:10, def:6, hp:95, skillName:'暗咒缠身', skillDesc:'诅咒敌人，造成1.3倍伤害并降低其30%攻击2回合', shenBonus:'减益效果延长1回合' },
+  { id:'tianxiang', name:'天相', icon:'🎵', class:'乐师', desc:'印星化气为印，端庄守正。为队友提供强大的增益效果。', atk:7, def:8, hp:100, skillName:'凤鸣九天', skillDesc:'鼓舞士气，恢复15%生命并提升全队20%攻击2回合', shenBonus:'增益效果额外+5%' },
+  { id:'tianliang', name:'天梁', icon:'🛡️', class:'贤者', desc:'荫星化气为荫，消灾解厄。擅长驱散和防御辅助。', atk:8, def:9, hp:115, skillName:'天梁荫护', skillDesc:'以荫星之力庇护，恢复20%HP并清除所有负面状态', shenBonus:'减伤额外+5%' },
+  { id:'qisha', name:'七杀', icon:'🗡️', class:'狂战士', desc:'将星入命，杀伐决断。血越少攻击越高，愈战愈勇。', atk:16, def:3, hp:85, skillName:'七杀绝命', skillDesc:'血量越低伤害越高，造成1.5~3倍伤害（基于已损失HP）', shenBonus:'HP低于30%时攻击额外+25%' },
+  { id:'pojun', name:'破军', icon:'💥', class:'先锋', desc:'耗星化气为耗，冲锋陷阵。破甲能力冠绝天下。', atk:14, def:4, hp:95, skillName:'破阵冲锋', skillDesc:'冲锋破阵，造成1.8倍伤害并降低敌人40%防御2回合', shenBonus:'破甲效果额外+10%' },
+];
+
+const SI_HUA = {
+  hua_lu: { name:'化禄', icon:'💛', desc_zh:'财运亨通', desc:'获得额外金币加成！战斗收益+20%' },
+  hua_quan: { name:'化权', icon:'💜', desc_zh:'权势高涨', desc:'力量觉醒！攻击力永久+8%' },
+  hua_ke: { name:'化科', icon:'💙', desc_zh:'文星拱照', desc:'智慧提升！经验获取+25%' },
+  hua_ji: { name:'化忌', icon:'❤️‍🔥', desc_zh:'劫数考验', desc:'劫数降临！本次升级不增益属性，但下次升级必触发双化' },
+};
+
+const SHEN_GONG = ['命宫','身宫趋吉','身宫避凶','身宫入财','身宫入官','身宫入迁'];
+const SHEN_BONUS = {
+  0:'均衡发展，无额外加成',
+  1:'运势+15%，战斗掉落更好',
+  2:'回避+10%，受伤概率降低',
+  3:'金币+20%，收益增加',
+  4:'经验+15%，升级更快',
+  5:'全属性+5%，全面强化',
+};
+
+// ── Enemies ──
+const ENEMIES = [
+  { name:'煞星 · 贪狼', icon:'🐺', hpMult:0.8, atkMult:0.7, desc:'欲望的化身，贪得无厌' },
+  { name:'煞星 · 破军', icon:'💥', hpMult:0.7, atkMult:0.9, desc:'毁灭的先锋，势不可挡' },
+  { name:'煞星 · 七杀', icon:'🗡️', hpMult:0.6, atkMult:1.0, desc:'杀伐之星，不留活路' },
+  { name:'煞星 · 擎羊', icon:'🐏', hpMult:0.9, atkMult:0.6, desc:'刑煞之星，暗箭难防' },
+  { name:'煞星 · 陀罗', icon:'🌀', hpMult:1.0, atkMult:0.5, desc:'暗曜缠身，久战不息' },
+  { name:'煞星 · 火星', icon:'🌋', hpMult:0.6, atkMult:0.8, desc:'暴烈之星，一触即发' },
+  { name:'煞星 · 铃星', icon:'🔔', hpMult:0.7, atkMult:0.7, desc:'暗夜之铃，防不胜防' },
+  { name:'煞星 · 地空', icon:'🕳️', hpMult:0.8, atkMult:0.6, desc:'虚空吞噬，一切皆空' },
+  { name:'煞星 · 地劫', icon:'⚡', hpMult:0.7, atkMult:0.8, desc:'劫数降临，在劫难逃' },
+];
+
+const PALACES = ['命宫','兄弟宫','夫妻宫','子女宫','财帛宫','疾厄宫','迁移宫','交友宫','官禄宫','田宅宫','福德宫','父母宫'];
+const PALACE_BOSSES = [
+  { name:'镇守 · 紫微帝星', icon:'👑', floor:5, hpMult:1.5, atkMult:1.3 },
+  { name:'镇守 · 天府令星', icon:'🏛️', floor:8, hpMult:1.8, atkMult:1.2 },
+  { name:'镇守 · 七杀将星', icon:'🗡️', floor:10, hpMult:1.3, atkMult:1.8 },
+  { name:'镇守 · 破军耗星', icon:'💥', floor:12, hpMult:2.0, atkMult:1.5 },
+];
+
+// ══════════════════════════════════════
+// Game State
+// ══════════════════════════════════════
+
+let G = null;
+
+function rand(n) { return Math.floor(Math.random() * n); }
+function pick(arr) { return arr[rand(arr.length)]; }
+
+function generateDestiny() {
+  const star = pick(STARS);
+  const shenIdx = rand(SHEN_GONG.length);
+  const huas = []; // 已触发的四化
+  let huaCount = 0;
+
+  return {
+    starId: star.id,
+    star,
+    shenIdx,
+    shenName: SHEN_GONG[shenIdx],
+    shenBonus: SHEN_BONUS[shenIdx],
+    huas,
+    huaCount,
+    lv: 1,
+    exp: 0,
+    expToNext: 100,
+    floor: 1,
+    maxFloor: 1,
+    maxHp: star.hp,
+    hp: star.hp,
+    atk: star.atk,
+    def: star.def,
+    skillCd: 0,
+    maxSkillCd: 3,
+    autoBattle: false,
+    kills: 0,
+    totalDmg: 0,
+    bossDefeated: 0,
+  };
+}
+
+function generateEnemy(floor) {
+  const base = pick(ENEMIES);
+  const levelMult = 1 + (floor - 1) * 0.15;
+  const hp = Math.floor(50 * base.hpMult * levelMult);
+  const atk = Math.floor(8 * base.atkMult * levelMult);
+  return {
+    ...base,
+    hp, maxHp: hp,
+    atk,
+    level: Math.max(1, Math.floor(floor * 0.8 + rand(2))),
+    floor,
+    burnTurns: 0,   // 燃烧剩余回合
+    defDown: 0,     // 破甲剩余回合
+    atkDown: 0,     // 虚弱剩余回合
+  };
+}
+
+function generateBoss(floor, bossDef) {
+  const levelMult = 1 + (floor - 1) * 0.12;
+  const hp = Math.floor(120 * bossDef.hpMult * levelMult);
+  const atk = Math.floor(12 * bossDef.atkMult * levelMult);
+  return {
+    name: bossDef.name,
+    icon: bossDef.icon,
+    hp, maxHp: hp,
+    atk,
+    level: floor,
+    floor,
+    isBoss: true,
+    burnTurns: 0, defDown: 0, atkDown: 0,
+  };
+}
+
+function getEnemyForFloor(floor) {
+  // Check if boss floor
+  for (const b of PALACE_BOSSES) {
+    if (b.floor === floor) return generateBoss(floor, b);
+  }
+  return generateEnemy(floor);
+}
+
+// ══════════════════════════════════════
+// UI Helpers
+// ══════════════════════════════════════
+
+function $(id) { return document.getElementById(id); }
+
+function log(msg, cls='info') {
+  const el = $('battleLog');
+  const d = document.createElement('div');
+  d.className = 'entry ' + cls;
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+  // Limit log
+  while (el.children.length > 50) el.removeChild(el.firstChild);
+}
+
+function clearLog() { $('battleLog').innerHTML = ''; }
+
+function updateHUD() {
+  if (!G) return;
+  $('hudLv').textContent = G.lv;
+  $('hudName').textContent = G.star.name;
+  $('hudClass').textContent = G.star.class;
+  $('hudIcon').textContent = G.star.icon;
+  const hpPct = Math.max(0, (G.hp / G.maxHp) * 100);
+  $('hpBar').style.width = hpPct + '%';
+  $('hpText').textContent = Math.ceil(G.hp) + '/' + Math.ceil(G.maxHp);
+  const expPct = G.expToNext > 0 ? (G.exp / G.expToNext) * 100 : 0;
+  $('expBar').style.width = Math.min(100, expPct) + '%';
+  $('expText').textContent = 'EXP: ' + Math.floor(G.exp) + '/' + Math.floor(G.expToNext);
+  const floorName = G.floor <= 12 ? PALACES[G.floor - 1] + ' · ' + G.floor + '/12' : '通关 · ' + G.floor;
+  $('hudFloor').textContent = floorName;
+  $('floorIndicator').textContent = '🏛️ ' + (G.floor <= 12 ? PALACES[G.floor - 1] : '破界') + ' · 第 ' + G.floor + ' 层';
+
+  $('statAtk').textContent = Math.floor(G.atk);
+  $('statDef').textContent = Math.floor(G.def);
+  $('statHp').textContent = Math.floor(G.maxHp);
+  $('statShen').textContent = G.shenName;
+
+  if (G.huas.length > 0) {
+    $('statHua').textContent = G.huas.map(h => SI_HUA[h].icon + SI_HUA[h].name).join(' ');
+    $('huaRow').style.display = 'flex';
+  }
+
+  // Skill cooldown
+  $('skillInfo').innerHTML = `⚔️ 普通攻击 · 💫 ${G.star.skillName}<span style="color:#6b7280">（CD: ${G.skillCd > 0 ? G.skillCd+'回合' : '可用'})</span>`;
+}
+
+function updateEnemyUI(e) {
+  if (!e) {
+    $('enemyArea').style.display = 'none';
+    return;
+  }
+  $('enemyArea').style.display = 'block';
+  $('enemyIcon').textContent = e.icon;
+  $('enemyName').textContent = e.name + (e.isBoss ? ' 👑' : '');
+  $('enemyLv').textContent = 'Lv.' + e.level;
+  const pct = Math.max(0, (e.hp / e.maxHp) * 100);
+  $('enemyHpBar').style.width = pct + '%';
+  $('enemyHpText').textContent = Math.max(0, Math.ceil(e.hp)) + '/' + Math.ceil(e.maxHp);
+}
+
+// ══════════════════════════════════════
+// Game Flow
+// ══════════════════════════════════════
+
+let currentEnemy = null;
+
+function startGame() {
+  G = generateDestiny();
+  document.getElementById('screenTitle').classList.remove('active');
+  document.getElementById('screenAbout').classList.remove('active');
+  document.getElementById('screenReveal').classList.add('active');
+
+  const star = G.star;
+  $('revealIcon').textContent = star.icon;
+  $('revealStar').textContent = star.name + ' · ' + star.class;
+  $('revealClass').textContent = '命宫主星：' + star.name + '星化气';
+  $('revealDesc').textContent = star.desc;
+  $('revealTags').innerHTML =
+    `<div class="tag">⚔️ 攻击 ${star.atk}</div>` +
+    `<div class="tag">🛡️ 防御 ${star.def}</div>` +
+    `<div class="tag">❤️ 生命 ${star.hp}</div>` +
+    `<div class="tag shen">💫 ${G.shenName}</div>`;
+  log('☯ 命盘开启：' + star.name + '星坐命宫！', 'info');
+  log('📍 身宫：' + G.shenName + ' — ' + G.shenBonus, 'info');
+}
+
+function enterDungeon() {
+  document.getElementById('screenReveal').classList.remove('active');
+  document.getElementById('screenGame').classList.add('active');
+  clearLog();
+  log('⚔️ 踏入「' + PALACES[0] + '」...', 'info');
+  spawnEnemy();
+}
+
+function spawnEnemy() {
+  currentEnemy = getEnemyForFloor(G.floor);
+  updateEnemyUI(currentEnemy);
+  log('👹 ' + currentEnemy.name + ' 出现了！（Lv.' + currentEnemy.level + '）', 'warn');
+  updateHUD();
+  $('btnAtk').disabled = false;
+  $('btnSkill').disabled = false;
+  $('btnHeal').disabled = false;
+}
+
+function playerAttack() {
+  if (!currentEnemy || currentEnemy.hp <= 0) return;
+  const dmg = calcDmg(G.atk, currentEnemy, 1.0);
+  dealDmg(dmg);
+}
+
+function playerSkill() {
+  if (!currentEnemy || currentEnemy.hp <= 0) return;
+  if (G.skillCd > 0) { log('💫 ' + G.star.skillName + ' 还在冷却中（剩' + G.skillCd + '回合）', 'warn'); return; }
+  const star = G.star;
+
+  let mult = 1.0;
+  let extra = null;
+
+  // Class-specific skill effects
+  if (star.id === 'ziwei') { mult = 2.0; extra = 'atkDown'; }
+  else if (star.id === 'tianji') { mult = 1.8; extra = 'critUp'; }
+  else if (star.id === 'taiyang') { mult = 1.3; G.hp = Math.min(G.maxHp, G.hp + G.maxHp * 0.2); log('☀️ 太阳之力 恢复' + Math.floor(G.maxHp * 0.2) + 'HP', 'heal'); }
+  else if (star.id === 'wuqu') { mult = 2.2; extra = 'defPen'; }
+  else if (star.id === 'tiantong') { G.hp = Math.min(G.maxHp, G.hp + G.maxHp * 0.35); log('💚 福星高照 恢复' + Math.floor(G.maxHp * 0.35) + 'HP', 'heal'); mult = 0; }
+  else if (star.id === 'lianzhen') { mult = 1.5; extra = 'burn'; }
+  else if (star.id === 'tianfu') { mult = 1.0; extra = 'defUp'; }
+  else if (star.id === 'taiyin') { mult = 1.6; extra = 'dodgeUp'; }
+  else if (star.id === 'tanlang') { mult = 2.5; G.hp -= G.maxHp * 0.1; log('🐺 贪狼反噬，损失' + Math.floor(G.maxHp * 0.1) + 'HP', 'dmg'); }
+  else if (star.id === 'jumen') { mult = 1.3; extra = 'atkDown'; }
+  else if (star.id === 'tianxiang') { G.hp = Math.min(G.maxHp, G.hp + G.maxHp * 0.15); extra = 'atkUp'; log('🎵 凤鸣九天 恢复' + Math.floor(G.maxHp * 0.15) + 'HP', 'heal'); mult = 0; }
+  else if (star.id === 'tianliang') { G.hp = Math.min(G.maxHp, G.hp + G.maxHp * 0.2); currentEnemy.atkDown = 0; currentEnemy.defDown = 0; currentEnemy.burnTurns = 0; log('🛡️ 天梁荫护 清除所有负面状态', 'heal'); mult = 0; }
+  else if (star.id === 'qisha') { const hpLoss = G.maxHp - G.hp; const ratio = hpLoss / G.maxHp; mult = 1.5 + ratio * 1.5; log('🗡️ 七杀·血越低越猛！伤害倍率：' + mult.toFixed(1) + 'x', 'buff'); }
+  else if (star.id === 'pojun') { mult = 1.8; extra = 'defPen'; }
+
+  const dmg = calcDmg(G.atk, currentEnemy, mult, extra === 'defPen');
+  dealDmg(dmg, extra, star.name + '释放【' + star.skillName + '】');
+  G.skillCd = G.maxSkillCd;
+  updateHUD();
+}
+
+function playerHeal() {
+  if (!currentEnemy || currentEnemy.hp <= 0) return;
+  const healAmt = Math.floor(G.maxHp * 0.15);
+  G.hp = Math.min(G.maxHp, G.hp + healAmt);
+  log('💚 调息，恢复 ' + healAmt + ' HP', 'heal');
+  updateHUD();
+  // Enemy gets a free turn
+  enemyTurn();
+}
+
+function calcDmg(atk, enemy, mult, ignoreDef) {
+  const def = ignoreDef ? enemy.atk * 0.5 : enemy.atk;
+  const base = atk * 0.7;
+  const variance = 0.9 + Math.random() * 0.2;
+  let dmg = Math.max(1, Math.floor(base * mult * variance));
+  return dmg;
+}
+
+function dealDmg(dmg, extra, skillMsg) {
+  if (!currentEnemy) return;
+  if (dmg <= 0) { dmg = 1; }
+
+  currentEnemy.hp -= dmg;
+  G.totalDmg += dmg;
+  G.skillCd = Math.max(0, G.skillCd - 1);
+
+  const msg = skillMsg || '⚔️ 普通攻击';
+  log('💥 ' + msg + ' -> ' + dmg + ' 伤害', 'dmg');
+
+  // Apply extra effects
+  if (extra === 'burn') { currentEnemy.burnTurns = 2; log('🔥 敌人被点燃了！2回合内每回合损失HP', 'warn'); }
+  if (extra === 'atkDown') { currentEnemy.atkDown = 2; log('📉 敌人攻击降低30%，持续2回合', 'buff'); }
+  if (extra === 'defPen') { currentEnemy.defDown = 2; log('📉 敌人防御降低40%，持续2回合', 'buff'); }
+  if (extra === 'defUp') { G.def *= 1.5; setTimeout(() => { G.def /= 1.5; }, 100); log('🛡️ 天府之壁，防御翻倍！', 'buff'); }
+  if (extra === 'dodgeUp') { log('🌙 月影幻影，闪避提升！', 'buff'); }
+  if (extra === 'atkUp') { G.atk *= 1.2; setTimeout(() => { G.atk /= 1.2; }, 200); log('🎵 攻击提升20%，持续2回合', 'buff'); }
+
+  // Shake
+  const ea = document.getElementById('enemyArea');
+  ea.classList.remove('shake');
+  void ea.offsetWidth;
+  ea.classList.add('shake');
+
+  updateEnemyUI(currentEnemy);
+
+  if (currentEnemy.hp <= 0) {
+    onEnemyDefeated();
+  } else {
+    enemyTurn();
+  }
+}
+
+function enemyTurn() {
+  if (!currentEnemy || currentEnemy.hp <= 0) return;
+  // Burn tick
+  if (currentEnemy.burnTurns > 0) {
+    const burnDmg = Math.floor(currentEnemy.maxHp * 0.08);
+    currentEnemy.hp -= burnDmg;
+    currentEnemy.burnTurns--;
+    log('🔥 燃烧伤害：' + burnDmg, 'dmg');
+    if (currentEnemy.hp <= 0) { onEnemyDefeated(); return; }
+    updateEnemyUI(currentEnemy);
+  }
+
+  // Enemy attack
+  let enemyAtk = currentEnemy.atk;
+  if (currentEnemy.atkDown > 0) { enemyAtk *= 0.7; currentEnemy.atkDown--; }
+
+  // Dodge chance for taiyin
+  let dodgeChance = 0;
+  if (G.star.id === 'taiyin') dodgeChance = 0.15;
+  if (Math.random() < dodgeChance) {
+    log('🌙 幻影闪避了敌人的攻击！', 'buff');
+  } else {
+    const dmg = Math.max(1, Math.floor(enemyAtk * (0.6 + Math.random() * 0.4) - G.def * 0.3));
+    G.hp -= dmg;
+    log('👹 ' + currentEnemy.name + ' 反击造成 ' + dmg + ' 伤害', 'dmg');
+
+    // Flash player
+    const hud = document.querySelector('.hud');
+    hud.classList.remove('flash');
+    void hud.offsetWidth;
+    hud.classList.add('flash');
+  }
+
+  updateHUD();
+
+  if (G.hp <= 0) {
+    gameOver();
+  }
+}
+
+function onEnemyDefeated() {
+  G.kills++;
+  const expGain = Math.floor(15 + G.floor * 5 + (currentEnemy.isBoss ? 30 : 0));
+  G.exp += expGain;
+  log('💀 击败 ' + currentEnemy.name + '！获得 ' + expGain + ' EXP', 'loot');
+
+  // Hua_lu bonus
+  if (G.huas.includes('hua_lu')) {
+    const bonus = Math.floor(expGain * 0.2);
+    G.exp += bonus;
+    log('💛 化禄加成：额外 +' + bonus + ' EXP', 'loot');
+  }
+
+  currentEnemy = null;
+
+  // Check level up
+  checkLevelUp();
+
+  // Check floor advancement
+  const isBoss = PALACE_BOSSES.some(b => b.floor === G.floor);
+  if (isBoss && G.hp > 0) {
+    G.bossDefeated++;
+    const nextFloor = G.floor + 1;
+    if (nextFloor <= 12) {
+      G.floor = nextFloor;
+      G.maxFloor = Math.max(G.maxFloor, G.floor);
+      log('🏛️ 突破 ' + PALACES[nextFloor - 2] + '！踏入「' + PALACES[nextFloor - 1] + '」', 'info');
+      updateHUD();
+      spawnEnemy();
+    } else {
+      log('🎉 🎉 🎉 恭喜通关十二宫！你已证道飞升！', 'loot');
+      log('🌌 进入无尽模式 · 挑战更强大的敌人！', 'info');
+      G.floor++;
+      G.maxFloor = Math.max(G.maxFloor, G.floor);
+      spawnEnemy();
+    }
+  } else if (G.floor < 12) {
+    const shouldAdvance = Math.random() < 0.7;
+    if (shouldAdvance) {
+      G.floor++;
+      G.maxFloor = Math.max(G.maxFloor, G.floor);
+      log('📈 深入 ' + PALACES[G.floor - 1], 'info');
+      updateHUD();
+    }
+    spawnEnemy();
+  } else {
+    G.floor++;
+    G.maxFloor = Math.max(G.maxFloor, G.floor);
+    log('🌌 无尽模式 · 第 ' + G.floor + ' 层', 'info');
+    spawnEnemy();
+  }
+}
+
+function checkLevelUp() {
+  while (G.exp >= G.expToNext) {
+    G.exp -= G.expToNext;
+    G.lv++;
+    G.expToNext = Math.floor(100 * Math.pow(1.12, G.lv - 1));
+
+    // Trigger四化 on level up
+    let huaTriggered = null;
+
+    // Random四化 trigger (15% chance per level, guaranteed at lv3/6/9/12)
+    if (G.huas.length === 0 && G.lv === 3) {
+      huaTriggered = 'hua_lu';
+    } else if (G.huas.length === 1 && G.lv === 6) {
+      huaTriggered = 'hua_quan';
+    } else if (G.huas.length === 2 && G.lv === 9) {
+      huaTriggered = 'hua_ke';
+    } else if (G.huas.length === 3 && G.lv === 12) {
+      huaTriggered = 'hua_ji';
+    } else if (Math.random() < 0.12 && G.huas.length < 4) {
+      const available = ['hua_lu','hua_quan','hua_ke','hua_ji'].filter(h => !G.huas.includes(h));
+      if (available.length > 0) huaTriggered = pick(available);
+    }
+
+    // Apply level up bonus
+    G.maxHp = Math.floor(G.maxHp * 1.06);
+    G.atk = Math.floor(G.atk * 1.05);
+    G.def = Math.floor(G.def * 1.05);
+    G.hp = G.maxHp;
+
+    // Show level up
+    const hua = huaTriggered ? SI_HUA[huaTriggered] : null;
+    showLvup(hua);
+
+    if (huaTriggered) {
+      G.huas.push(huaTriggered);
+
+      // Apply四化 effects
+      if (huaTriggered === 'hua_quan') { G.atk = Math.floor(G.atk * 1.08); }
+      if (huaTriggered === 'hua_ke') { /* exp boost already baked */ }
+      if (huaTriggered === 'hua_ji') {
+        // 化忌：回退这一级的属性增益，但下次必出双化
+        G.maxHp = Math.floor(G.maxHp / 1.06);
+        G.atk = Math.floor(G.atk / 1.05);
+        G.def = Math.floor(G.def / 1.05);
+        G.hp = G.maxHp;
+        log('❤️‍🔥 化忌劫数！本次升级属性未提升，但下次升级必触发双化', 'warn');
+      }
+    }
+
+    updateHUD();
+  }
+  updateHUD();
+}
+
+function showLvup(hua) {
+  $('lvupIcon').textContent = '⬆️';
+  $('lvupTitle').textContent = '突破！Lv.' + G.lv;
+  $('lvupSub').textContent = '全属性 +5~6% · 下一级需 ' + Math.floor(G.expToNext) + ' EXP';
+
+  const huaEl = $('lvupHua');
+  if (hua) {
+    huaEl.style.display = 'block';
+    $('huaTitle').textContent = hua.icon + ' ' + hua.name + ' · ' + (hua.desc_zh || '');
+    $('huaDesc').textContent = hua.desc;
+    $('lvupEffect').textContent = '✨ 四化觉醒：' + hua.name;
+  } else {
+    huaEl.style.display = 'none';
+    $('lvupEffect').textContent = '💪 全属性提升！';
+  }
+
+  $('lvupOverlay').classList.add('show');
+}
+
+function closeLvup() {
+  $('lvupOverlay').classList.remove('show');
+}
+
+function gameOver() {
+  $('gameoverStats').textContent = '你止步于 ' + PALACES[Math.min(G.floor - 1, 11)] + ' · Lv.' + G.lv + ' · 击败 ' + G.kills + ' 个煞星';
+  $('gameoverOverlay').classList.add('show');
+}
+
+function toggleAuto() {
+  G.autoBattle = !G.autoBattle;
+  const btn = $('btnAuto');
+  btn.textContent = G.autoBattle ? '⏸ 暂停' : '▶ 自动战斗';
+  btn.style.background = G.autoBattle ? 'rgba(52,211,153,.15)' : 'rgba(251,191,36,.1)';
+  btn.style.color = G.autoBattle ? '#34d399' : '#fbbf24';
+  if (G.autoBattle) autoLoop();
+}
+
+function autoLoop() {
+  if (!G.autoBattle || !currentEnemy || G.hp <= 0) return;
+  if (currentEnemy.hp <= 0) { spawnEnemy(); setTimeout(autoLoop, 400); return; }
+
+  // Smart skill usage
+  if (G.skillCd <= 0) {
+    playerSkill();
+  } else if (G.hp < G.maxHp * 0.4 && Math.random() < 0.4) {
+    playerHeal();
+  } else {
+    playerAttack();
+  }
+
+  setTimeout(autoLoop, 500);
+}
+
+// ══════════════════════════════════════
+// Init
+// ══════════════════════════════════════
+
+log('☯ 紫薇天命 · Zi Wei Destiny RPG', 'info');
+log('💫 点击「开启命盘」开始你的命运之旅', 'info');
+</script>
+</body>
+</html>

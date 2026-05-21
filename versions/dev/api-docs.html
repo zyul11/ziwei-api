@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5545263418745440" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>紫微斗数 API 文档 · B端开发者接口</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  background:#0a0a14;color:#d0c8e0;min-height:100vh;position:relative
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(1px 1px at 10%20%,rgba(255,255,255,.3),transparent),
+             radial-gradient(1px 1px at 30%60%,rgba(255,255,255,.2),transparent),
+             radial-gradient(1px 1px at 50%10%,rgba(255,255,255,.25),transparent),
+             radial-gradient(1.5px 1.5px at 85%65%,rgba(255,215,0,.2),transparent),
+             radial-gradient(1.5px 1.5px at 25%55%,rgba(123,104,238,.2),transparent);
+  pointer-events:none;z-index:0
+}
+body::after{
+  content:'';position:fixed;top:50%;left:50%;
+  width:700px;height:700px;margin:-350px 0 0 -350px;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent,rgba(123,104,238,.04),transparent 30%,rgba(123,104,238,.02),transparent 60%,rgba(123,104,238,.03),transparent);
+  pointer-events:none;z-index:0;animation:bgSpin 40s linear infinite
+}
+@keyframes bgSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+.container{max-width:960px;margin:0 auto;padding:20px;position:relative;z-index:1}
+
+/* Hero */
+.hero{text-align:center;padding:40px 0 24px}
+.hero h1{
+  font-family:'Noto Serif SC',serif;font-size:34px;font-weight:900;
+  background:linear-gradient(135deg,#e0c8ff,#7b68ee,#4a3aa0);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px
+}
+.hero .sub{color:#6a5a8a;font-size:14px;margin-top:8px;line-height:1.6}
+.hero .sub strong{color:#c4a0ff;font-weight:500}
+.hero .badge-row{display:flex;justify-content:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hero .badge{display:inline-block;background:rgba(123,104,238,.1);border:1px solid rgba(123,104,238,.15);border-radius:20px;padding:4px 14px;font-size:11px;color:#9a8aaa;letter-spacing:.5px}
+
+/* Section */
+.section{margin-bottom:32px}
+.section-title{font-size:18px;color:#c4a0ff;letter-spacing:2px;margin-bottom:16px;display:flex;align-items:center;gap:8px;font-weight:600}
+.section-title .num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(123,104,238,.15);color:#c4a0ff;font-size:13px;font-weight:600}
+
+/* Card */
+.card{
+  background:linear-gradient(135deg,rgba(26,26,46,.93),rgba(16,16,30,.93));
+  border:1px solid rgba(123,104,238,.15);border-radius:14px;
+  padding:20px;margin-bottom:16px;box-shadow:0 4px 24px rgba(0,0,0,.3)
+}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.card-title{font-size:15px;font-weight:600;color:#e0c8ff;letter-spacing:1px;display:flex;align-items:center;gap:8px}
+.card-method{display:inline-block;padding:2px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.5px}
+.method-post{background:rgba(100,200,255,.12);color:#64c8ff;border:1px solid rgba(100,200,255,.2)}
+.method-get{background:rgba(100,255,180,.1);color:#7ee0b0;border:1px solid rgba(100,255,180,.15)}
+.card-path{font-family:'JetBrains Mono',monospace;font-size:12px;color:#7a6a9a;letter-spacing:.5px}
+
+/* Code block */
+.code-block{
+  background:#0e0e1a;border:1px solid #1e1e3a;border-radius:10px;
+  padding:16px;overflow-x:auto;margin:10px 0;
+  font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:#c8d0e8
+}
+.code-block .comment{color:#5a6a8a}
+.code-block .keyword{color:#7b68ee}
+.code-block .string{color:#7ee0b0}
+.code-block .number{color:#f0d060}
+.code-block .field{color:#88bbff}
+.code-block .highlight{color:#ff88aa}
+
+/* Table */
+.api-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+.api-table th{padding:8px 10px;text-align:left;background:rgba(123,104,238,.08);color:#a090c0;font-weight:500;font-size:11px;letter-spacing:1px;border-bottom:1px solid rgba(123,104,238,.1)}
+.api-table td{padding:8px 10px;border-bottom:1px solid rgba(20,20,40,.8);color:#c0b8d0}
+.api-table .param-name{font-family:'JetBrains Mono',monospace;font-size:12px;color:#7ee0b0}
+.api-table .param-type{font-size:11px;color:#5a6a8a}
+.api-table .param-req{color:#ff88aa;font-size:10px;font-weight:600}
+.api-table .param-opt{color:#5a6a8a;font-size:10px}
+
+/* Pricing */
+.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.price-card{
+  background:linear-gradient(135deg,rgba(26,26,46,.93),rgba(16,16,30,.93));
+  border:1px solid rgba(123,104,238,.15);border-radius:14px;
+  padding:24px 20px;text-align:center;transition:all .3s;position:relative;overflow:hidden
+}
+.price-card:hover{border-color:rgba(123,104,238,.4);transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.price-card.popular::before{
+  content:'🔥 推荐';position:absolute;top:10px;right:-22px;
+  background:linear-gradient(135deg,#f0d060,#d4a820);color:#1a1a2e;
+  font-size:10px;font-weight:700;padding:2px 28px;transform:rotate(45deg);letter-spacing:.5px
+}
+.price-card .p-icon{font-size:32px;margin-bottom:8px}
+.price-card .p-name{font-size:16px;font-weight:600;color:#e0d8e8;letter-spacing:1px}
+.price-card .p-price{font-size:36px;font-weight:900;margin:8px 0 2px;color:#f0d060}
+.price-card .p-per{font-size:12px;color:#6a5a8a;margin-bottom:6px}
+.price-card .p-quota{font-size:13px;color:#c0b8d0;margin-bottom:4px}
+.price-card .p-desc{font-size:11px;color:#5a4a7a;line-height:1.5;margin-bottom:12px}
+.price-card .p-btn{
+  display:inline-block;padding:10px 28px;border-radius:10px;
+  border:1px solid rgba(123,104,238,.3);color:#c4a0ff;
+  font-size:13px;font-weight:500;transition:all .3s;background:transparent;cursor:pointer;text-decoration:none
+}
+.price-card .p-btn:hover{background:rgba(123,104,238,.15);border-color:#7b68ee}
+
+/* Info boxes */
+.info-box{
+  background:#12121e;border:1px solid #2a2a4a;border-radius:10px;
+  padding:14px 16px;margin:10px 0;display:flex;gap:10px;align-items:flex-start
+}
+.info-box .ib-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.info-box .ib-text{font-size:13px;color:#b0a8c0;line-height:1.6}
+.info-box .ib-text strong{color:#e0d8e8}
+.info-box.warning{border-color:rgba(255,200,80,.15);background:rgba(255,200,80,.04)}
+.info-box.warning .ib-text{color:#c0b080}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.step-item{display:flex;gap:12px;align-items:flex-start;padding:10px 14px;background:#12121e;border:1px solid #2a2a4a;border-radius:10px}
+.step-item .s-num{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:rgba(123,104,238,.15);color:#c4a0ff;font-size:12px;font-weight:600;flex-shrink:0;margin-top:1px}
+.step-item .s-text{font-size:13px;color:#c0b8d0;line-height:1.6}
+.step-item .s-text strong{color:#e0d8e8}
+
+/* Links */
+.links{display:flex;gap:10px;justify-content:center;margin:24px 0}
+.links a{color:#5a4a7a;font-size:11px;text-decoration:none;padding:6px 14px;border:1px solid #2a2a4a;border-radius:7px;transition:all .3s}
+.links a:hover{color:#c4a0ff;border-color:#7b68ee}
+
+.footer{text-align:center;padding:30px 0;color:#3a2a5a;font-size:12px;letter-spacing:1px;line-height:1.8}
+
+@media(max-width:600px){
+  .pricing-grid{grid-template-columns:1fr}
+  .hero h1{font-size:26px}
+  .card-header{flex-direction:column;align-items:flex-start}
+  .api-table{font-size:12px}
+  .api-table th,.api-table td{padding:6px 6px}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div style="text-align:right;margin-bottom:10px">
+      <button id="langZhBtn" onclick="setLang('zh')" style="background:none;border:1px solid #e8a040;color:#f0e0c8;padding:3px 12px;border-radius:6px;cursor:pointer;font-size:12px;margin-right:4px">中文</button>
+      <button id="langEnBtn" onclick="setLang('en')" style="background:none;border:1px solid #3a2a1e;color:#8a7050;padding:3px 12px;border-radius:6px;cursor:pointer;font-size:12px">EN</button>
+    </div>
+    <h1 id="i18n_title">✦ 紫微斗数 API ✦</h1>
+    <div class="sub" id="i18n_sub">
+      紫微斗数排盘与命理解读 · 标准化 RESTful 接口<br>
+      轻松集成紫微命理功能到您的网站、APP 或小程序
+    </div>
+    <div class="badge-row">
+      <span class="badge">🔄 RESTful API</span>
+      <span class="badge">🔑 Bearer Auth</span>
+      <span class="badge">📦 JSON</span>
+      <span class="badge" id="i18n_badge_instant">⚡ 即买即用</span>
+    </div>
+  </div>
+
+  <!-- 简介 -->
+  <div class="section">
+    <div class="section-title" id="s1_title"><span class="num">1</span> API 简介</div>
+    <div class="card">
+      <p style="font-size:14px;color:#c0b8d0;line-height:1.8;margin-bottom:12px">
+        本 API 提供完整的紫微斗数排盘能力，包括<strong style="color:#e0c8ff">命盘计算、深度解读、每日运势、十年大限</strong>等功能。
+        基于 Node.js 排盘引擎驱动，所有命理计算均符合传统紫微斗数规则。
+      </p>
+      <div class="info-box">
+        <div class="ib-icon">🌐</div>
+        <div class="ib-text">
+          <strong>Base URL：</strong><code style="color:#7ee0b0;font-family:'JetBrains Mono',monospace;font-size:12px">https://ziweiapi.site</code><br>
+          <span style="font-size:11px;color:#5a4a7a">本地测试：</span><code style="color:#7ee0b0;font-family:'JetBrains Mono',monospace;font-size:12px">http://127.0.0.1:8119</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 认证 -->
+  <div class="section">
+    <div class="section-title" id="s2_title"><span class="num">2</span> 认证方式</div>
+    <div class="card">
+      <p style="font-size:14px;color:#c0b8d0;line-height:1.8;margin-bottom:12px">
+        所有 API 请求需要携带 <strong style="color:#e0c8ff">Bearer Token</strong> 进行身份认证。
+        在 <a href="/shop.html" style="color:#7b68ee;text-decoration:none;border-bottom:1px solid rgba(123,104,238,.2)">shop.html</a> 购买套餐后获取 API Key。
+      </p>
+      <div class="code-block">
+<span class="comment"># 请求头格式</span>
+Authorization: Bearer <span class="string">zw_your_api_key_here</span>
+      </div>
+      <div class="info-box warning">
+        <div class="ib-icon">⚠️</div>
+        <div class="ib-text"><strong>请注意：</strong>每个 API Key 有调用次数限制，超额后请求将被拒绝。请通过 <strong style="color:#f0d060">/key/balance</strong> 接口查询剩余次数。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key 获取 -->
+  <div class="section">
+    <div class="section-title" id="s3_title"><span class="num">3</span> 获取 API Key</div>
+    <div class="card">
+      <div class="steps">
+        <div class="step-item">
+          <div class="s-num">1</div>
+          <div class="s-text"><strong>选择套餐</strong> — 根据调用量需求选择 Business API 或 White Label 方案</div>
+        </div>
+        <div class="step-item">
+          <div class="s-num">2</div>
+          <div class="s-text"><strong>在线购买</strong> — 选择套餐完成支付后即时获取 API Key</div>
+        </div>
+        <div class="step-item">
+          <div class="s-num">3</div>
+          <div class="s-text"><strong>在请求头中添加</strong> — 将 Key 作为 <code style="color:#7ee0b0;font-family:monospace">Authorization: Bearer &lt;your_key&gt;</code> 发送</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px">
+        <a href="/shop.html" class="p-btn" style="display:inline-block;padding:10px 28px;border-radius:10px;border:1px solid rgba(123,104,238,.3);color:#c4a0ff;font-size:13px;font-weight:500;transition:all .3s;background:transparent;cursor:pointer;text-decoration:none">🛒 前往购买 API Key</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 接口列表 -->
+  <div class="section">
+    <div class="section-title" id="s4_title"><span class="num">4</span> 接口列表</div>
+
+    <!-- POST /v1/paipan -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="c1_title">🔮 排盘 + 深度解读</div>
+        <div>
+          <span class="card-method method-post">POST</span>
+          <span class="card-path">/v1/paipan</span>
+        </div>
+      </div>
+      <p style="font-size:13px;color:#7a6a9a;margin-bottom:12px" id="c1_desc">完整的紫微斗数排盘与深度解读（3000+字）</p>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin-bottom:6px">📋 请求参数</div>
+      <table class="api-table">
+        <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+        <tr><td class="param-name">year</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生年份（1900-2100）</td></tr>
+        <tr><td class="param-name">month</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生月份（1-12）</td></tr>
+        <tr><td class="param-name">day</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生日期（1-31）</td></tr>
+        <tr><td class="param-name">hour</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生时辰（0-11，对应子时到亥时）</td></tr>
+        <tr><td class="param-name">gender</td><td class="param-type">String</td><td class="param-req">是</td><td>性别：<code style="color:#7ee0b0">male</code> 或 <code style="color:#7ee0b0">female</code></td></tr>
+        <tr><td class="param-name">style</td><td class="param-type">String</td><td class="param-opt">否</td><td>解读风格：<code style="color:#7ee0b0">modern</code>（现代）/ <code style="color:#7ee0b0">classic</code>（古典）/ <code style="color:#7ee0b0">poetic</code>（诗意），默认 <code style="color:#7ee0b0">modern</code></td></tr>
+      </table>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin:14px 0 6px">📎 curl 示例</div>
+      <div class="code-block">
+curl -X POST https://ziweiapi.site/v1/paipan \<br>
+  -H <span class="string">"Authorization: Bearer zw_your_key"</span> \<br>
+  -H <span class="string">"Content-Type: application/json"</span> \<br>
+  -d <span class="string">'{</span><br>
+<span class="string">      "year": 1995, "month": 8, "day": 15,</span><br>
+<span class="string">      "hour": 6, "gender": "male",</span><br>
+<span class="string">      "style": "modern"</span><br>
+<span class="string">    }'</span>
+      </div>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin:14px 0 6px">📤 返回示例</div>
+      <div class="code-block">
+{<br>
+  <span class="field">"success"</span>: <span class="keyword">true</span>,<br>
+  <span class="field">"data"</span>: {<br>
+    <span class="field">"basic"</span>: {<br>
+      <span class="field">"bazi"</span>: <span class="string">"乙亥 甲申 壬午 丙午"</span>,<br>
+      <span class="field">"ming_gong"</span>: <span class="string">"寅"</span>,<br>
+      <span class="field">"shen_gong"</span>: <span class="string">"子"</span>,<br>
+      <span class="field">"yin_yang"</span>: <span class="string">"阳男"</span><br>
+    },<br>
+    <span class="field">"chart"</span>: [ ... ],  <span class="comment">// 12宫命盘数据</span><br>
+    <span class="field">"daxian"</span>: [ ... ],  <span class="comment">// 十年大限</span><br>
+    <span class="field">"reading"</span>: <span class="string">"..."</span>  <span class="comment">// 解读全文</span><br>
+  }<br>
+}
+      </div>
+    </div>
+
+    <!-- POST /v1/paipan-only -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="c2_title">🧮 仅排盘（无解读）</div>
+        <div>
+          <span class="card-method method-post">POST</span>
+          <span class="card-path">/v1/paipan-only</span>
+        </div>
+      </div>
+      <p style="font-size:13px;color:#7a6a9a;margin-bottom:12px" id="c2_desc">纯排盘计算，返回命盘数据与大限，不消耗解读次数</p>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin-bottom:6px">📋 请求参数</div>
+      <table class="api-table">
+        <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+        <tr><td class="param-name">year</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生年份</td></tr>
+        <tr><td class="param-name">month</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生月份</td></tr>
+        <tr><td class="param-name">day</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生日期</td></tr>
+        <tr><td class="param-name">hour</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生时辰（0-11）</td></tr>
+        <tr><td class="param-name">gender</td><td class="param-type">String</td><td class="param-req">是</td><td>性别：<code style="color:#7ee0b0">male</code> 或 <code style="color:#7ee0b0">female</code></td></tr>
+      </table>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin:14px 0 6px">📎 curl 示例</div>
+      <div class="code-block">
+curl -X POST https://ziweiapi.site/v1/paipan-only \<br>
+  -H <span class="string">"Authorization: Bearer zw_your_key"</span> \<br>
+  -H <span class="string">"Content-Type: application/json"</span> \<br>
+  -d <span class="string">'{</span><br>
+<span class="string">      "year": 1990, "month": 3, "day": 21,</span><br>
+<span class="string">      "hour": 4, "gender": "female"</span><br>
+<span class="string">    }'</span>
+      </div>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin:14px 0 6px">📤 返回示例</div>
+      <div class="code-block">
+{<br>
+  <span class="field">"success"</span>: <span class="keyword">true</span>,<br>
+  <span class="field">"data"</span>: {<br>
+    <span class="field">"basic"</span>: { ... },<br>
+    <span class="field">"chart"</span>: [ ... ],  <span class="comment">// 12宫命盘数据</span><br>
+    <span class="field">"daxian"</span>: [ ... ]   <span class="comment">// 十年大限</span><br>
+  }<br>
+}
+      </div>
+    </div>
+
+    <!-- POST /v1/daily -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="c3_title">🌅 每日运势</div>
+        <div>
+          <span class="card-method method-post">POST</span>
+          <span class="card-path">/v1/daily</span>
+        </div>
+      </div>
+      <p style="font-size:13px;color:#7a6a9a;margin-bottom:12px" id="c3_desc">基于命盘 + 流日推算，返回当日运势解读、幸运色、宜忌与空间建议</p>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin-bottom:6px">📋 请求参数</div>
+      <table class="api-table">
+        <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+        <tr><td class="param-name">year</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生年份</td></tr>
+        <tr><td class="param-name">month</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生月份</td></tr>
+        <tr><td class="param-name">day</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生日期</td></tr>
+        <tr><td class="param-name">hour</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生时辰（0-11）</td></tr>
+        <tr><td class="param-name">gender</td><td class="param-type">String</td><td class="param-req">是</td><td>性别：<code style="color:#7ee0b0">male</code> 或 <code style="color:#7ee0b0">female</code></td></tr>
+        <tr><td class="param-name">target_date</td><td class="param-type">String</td><td class="param-opt">否</td><td>指定日期，格式 <code style="color:#7ee0b0">YYYY-MM-DD</code>，默认当天</td></tr>
+      </table>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin:14px 0 6px">📎 curl 示例</div>
+      <div class="code-block">
+curl -X POST https://ziweiapi.site/v1/daily \<br>
+  -H <span class="string">"Authorization: Bearer zw_your_key"</span> \<br>
+  -H <span class="string">"Content-Type: application/json"</span> \<br>
+  -d <span class="string">'{</span><br>
+<span class="string">      "year": 1995, "month": 8, "day": 15,</span><br>
+<span class="string">      "hour": 6, "gender": "male",</span><br>
+<span class="string">      "target_date": "2026-05-16"</span><br>
+<span class="string">    }'</span>
+      </div>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin:14px 0 6px">📤 返回示例</div>
+      <div class="code-block">
+{<br>
+  <span class="field">"success"</span>: <span class="keyword">true</span>,<br>
+  <span class="field">"data"</span>: {<br>
+    <span class="field">"date"</span>: <span class="string">"2026-05-16"</span>,<br>
+    <span class="field">"lunar_date"</span>: <span class="string">"三月三十"</span>,<br>
+    <span class="field">"reading"</span>: <span class="string">"今日..."</span>,<br>
+    <span class="field">"lucky_color"</span>: <span class="string">"金色、白色"</span>,<br>
+    <span class="field">"yi"</span>: [<span class="string">"签约"</span>, <span class="string">"社交"</span>, <span class="string">"学习"</span>],<br>
+    <span class="field">"ji"</span>: [<span class="string">"投机"</span>, <span class="string">"搬家"</span>],<br>
+    <span class="field">"orientation_advice"</span>: <span class="string">"..."</span><br>
+  }<br>
+}
+      </div>
+    </div>
+
+    <!-- POST /v1/daxian -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="c4_title">⏳ 十年大限</div>
+        <div>
+          <span class="card-method method-post">POST</span>
+          <span class="card-path">/v1/daxian</span>
+        </div>
+      </div>
+      <p style="font-size:13px;color:#7a6a9a;margin-bottom:12px" id="c4_desc">获取当前十年大限的详细信息与深度分析，了解大限运势起伏</p>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin-bottom:6px">📋 请求参数</div>
+      <table class="api-table">
+        <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+        <tr><td class="param-name">year</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生年份</td></tr>
+        <tr><td class="param-name">month</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生月份</td></tr>
+        <tr><td class="param-name">day</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生日期</td></tr>
+        <tr><td class="param-name">hour</td><td class="param-type">Integer</td><td class="param-req">是</td><td>出生时辰（0-11）</td></tr>
+        <tr><td class="param-name">gender</td><td class="param-type">String</td><td class="param-req">是</td><td>性别：<code style="color:#7ee0b0">male</code> 或 <code style="color:#7ee0b0">female</code></td></tr>
+        <tr><td class="param-name">age</td><td class="param-type">Integer</td><td class="param-opt">否</td><td>指定年龄的大限，不传则返回当前年龄的大限</td></tr>
+      </table>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin:14px 0 6px">📎 curl 示例</div>
+      <div class="code-block">
+curl -X POST https://ziweiapi.site/v1/daxian \<br>
+  -H <span class="string">"Authorization: Bearer zw_your_key"</span> \<br>
+  -H <span class="string">"Content-Type: application/json"</span> \<br>
+  -d <span class="string">'{</span><br>
+<span class="string">      "year": 1988, "month": 12, "day": 1,</span><br>
+<span class="string">      "hour": 2, "gender": "male",</span><br>
+<span class="string">      "age": 38</span><br>
+<span class="string">    }'</span>
+      </div>
+
+      <div style="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin:14px 0 6px">📤 返回示例</div>
+      <div class="code-block">
+{<br>
+  <span class="field">"success"</span>: <span class="keyword">true</span>,<br>
+  <span class="field">"data"</span>: {<br>
+    <span class="field">"current_daxian"</span>: {<br>
+      <span class="field">"palace"</span>: <span class="string">"财帛宫"</span>,<br>
+      <span class="field">"age_range"</span>: <span class="string">"33-42"</span>,<br>
+      <span class="field">"stars"</span>: [<span class="string">"武曲"</span>, <span class="string">"天府"</span>],<br>
+      <span class="field">"reading"</span>: <span class="string">"..."</span><br>
+    },<br>
+    <span class="field">"all_daxian"</span>: [ ... ]  <span class="comment">// 全部大限列表</span><br>
+  }<br>
+}
+      </div>
+    </div>
+  </div>
+
+  <!-- 定价 -->
+  <div class="section">
+    <div class="section-title" id="s5_title"><span class="num">5</span> 定价方案</div>
+    <div class="pricing-grid" style="grid-template-columns:1fr">
+      <div class="price-card popular">
+        <div class="p-icon">👑</div>
+        <div class="p-name">专业版 Business API</div>
+        <div class="p-price">$999</div>
+        <div class="p-per">一次性购买 · 永不过期</div>
+        <div class="p-quota">6000 次调用</div>
+        <div class="p-desc">适合个人开发者、中小企业<br>全部接口可用 · 技术支持</div>
+        <a href="/shop.html" class="p-btn">立即购买 →</a>
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:4px">
+      <div class="ib-icon">💡</div>
+      <div class="ib-text">
+        <strong>计费说明：</strong>排盘+深度解读消耗 1 次调用，仅排盘消耗 0.5 次，每日运势消耗 1 次，十年大限消耗 5 次。<br>
+        <span style="font-size:11px;color:#5a4a7a">支持在线支付 · 购买后即时开通</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部 CTA -->
+  <div class="card" style="text-align:center;border-color:rgba(123,104,238,.25);margin-top:24px">
+    <div style="font-size:36px;margin-bottom:8px">🚀</div>
+    <div style="font-size:18px;color:#e0c8ff;font-weight:700;letter-spacing:2px;margin-bottom:6px">准备集成紫微斗数到您的产品？</div>
+    <p style="font-size:13px;color:#6a5a8a;margin-bottom:16px;line-height:1.6">
+      仅需 5 分钟即可完成 API 集成 · 先免费体验排盘效果<br>
+      购买 Key 后即时生效，无需等待
+    </p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <a href="/index.html" class="p-btn" style="display:inline-block;padding:12px 32px;border-radius:10px;background:linear-gradient(135deg,#7b68ee,#5a4acd);color:#fff;font-size:14px;font-weight:600;letter-spacing:1.5px;transition:all .3s;text-decoration:none;box-shadow:0 4px 16px rgba(123,104,238,.25)">🌟 免费体验排盘</a>
+      <a href="/shop.html" class="p-btn" style="display:inline-block;padding:12px 32px;border-radius:10px;border:1px solid rgba(123,104,238,.3);color:#c4a0ff;font-size:14px;font-weight:500;transition:all .3s;text-decoration:none">🛒 购买 API Key</a>
+    </div>
+  </div>
+
+  <!-- Links -->
+  <div class="links">
+    <a href="/index.html">🌟 排盘体验</a>
+    <a href="/shop.html">🛒 购买 Key</a>
+    <a href="/api-docs.html">📖 API 文档</a>
+    <a href="/about.html">ℹ️ 关于我们</a>
+  </div>
+
+  <div class="footer">
+    紫微斗数 API · © 2026
+  </div>
+
+</div>
+
+<div style="text-align:center;padding:4px 0 20px;font-size:10px;color:#3a2a5a" id="i18n_disclaimer">
+  ⚠️ 内容仅供娱乐参考，不构成专业建议
+</div>
+
+<script>
+// ─── i18n ─────────────────────────────────────────────
+const _T = {
+  zh: {
+    title: '紫微斗数 API 文档 · B端开发者接口',
+    heroTitle: '✦ 紫微斗数 API ✦',
+    heroSub: '紫微斗数排盘与命理解读 · 标准化 RESTful 接口<br>轻松集成紫微命理功能到您的网站、APP 或小程序',
+    badgeInstant: '⚡ 即买即用',
+    s1: 'API 简介',
+    s1_text: '本 API 提供完整的紫微斗数排盘能力，包括<strong style="color:#e0c8ff">命盘计算、深度解读、每日运势、十年大限</strong>等功能。基于 Node.js 排盘引擎驱动，所有命理计算均符合传统紫微斗数规则。',
+    baseUrlLabel: 'Base URL：',
+    localTest: '本地测试：',
+    s2: '认证方式',
+    s2_text: '所有 API 请求需要携带 <strong style="color:#e0c8ff">Bearer Token</strong> 进行身份认证。在 <a href="/shop.html" style="color:#7b68ee;text-decoration:none;border-bottom:1px solid rgba(123,104,238,.2)">购买套餐</a> 后获取 API Key。',
+    s2_comment: '# 请求头格式',
+    s2_warn: '<strong>请注意：</strong>每个 API Key 有调用次数限制，超额后请求将被拒绝。请通过 <strong style="color:#f0d060">/key/balance</strong> 接口查询剩余次数。',
+    s3: '获取 API Key',
+    step1: '<strong>选择套餐</strong> — 根据调用量需求选择对应方案',
+    step2: '<strong>在线购买</strong> — 选择套餐完成支付后即时获取 API Key',
+    step3: '<strong>在请求头中添加</strong> — 将 Key 作为 <code style="color:#7ee0b0;font-family:monospace">Authorization: Bearer &lt;your_key&gt;</code> 发送',
+    s3_btn: '🛒 前往购买 API Key',
+    s4: '接口列表',
+    c1_title: '🔮 排盘 + 深度解读',
+    c1_desc: '完整的紫微斗数排盘与深度解读（3000+字）',
+    c2_title: '🧮 仅排盘（无解读）',
+    c2_desc: '纯排盘计算，返回命盘数据与大限，不消耗解读次数',
+    c3_title: '🌅 每日运势',
+    c3_desc: '基于命盘 + 流日推算，返回当日运势解读、幸运色、宜忌与空间建议',
+    c4_title: '⏳ 十年大限',
+    c4_desc: '获取当前十年大限的详细信息与深度分析，了解大限运势起伏',
+    paramsTitle: '📋 请求参数',
+    paramName: '参数',
+    paramType: '类型',
+    paramReq: '必填',
+    paramDesc: '说明',
+    curlTitle: '📎 curl 示例',
+    responseTitle: '📤 返回示例',
+    s5: '定价方案',
+    pName: '专业版 Business API',
+    pPer: '一次性购买 · 永不过期',
+    pQuota: '6000 次调用',
+    pDesc: '适合个人开发者、中小企业<br>全部接口可用 · 技术支持',
+    pBtn: '立即购买 →',
+    billingLabel: '计费说明：',
+    billingText: '排盘+深度解读消耗 1 次调用，仅排盘消耗 0.5 次，每日运势消耗 1 次，十年大限消耗 5 次。',
+    billing_support: '支持在线支付 · 购买后即时开通',
+    cta_title: '准备集成紫微斗数到您的产品？',
+    cta_text: '仅需 5 分钟即可完成 API 集成 · 先免费体验排盘效果<br>购买 Key 后即时生效，无需等待',
+    cta_btn1: '🌟 免费体验排盘',
+    cta_btn2: '🛒 购买 API Key',
+    link1: '🌟 排盘体验',
+    link2: '🛒 购买 Key',
+    link3: '📖 API 文档',
+    link4: 'ℹ️ 关于我们',
+    footer: '紫微斗数 API · © 2026',
+    disclaimer: '⚠️ 内容仅供娱乐参考，不构成专业建议',
+    popularBadge: '🔥 推荐',
+  },
+  en: {
+    title: 'Ziwei Doushu API · Developer Docs',
+    heroTitle: '✦ Ziwei Doushu API ✦',
+    heroSub: 'Ziwei Astrology & Fortune Analysis · Standard RESTful API<br>Easily integrate Chinese astrology into your website, app or mini-program',
+    badgeInstant: '⚡ Instant Access',
+    s1: 'Introduction',
+    s1_text: 'This API provides complete Ziwei Doushu chart calculation, including <strong style="color:#e0c8ff">natal chart, fortune reading, daily horoscope, and 10-year luck cycle</strong>. Powered by the Node.js calculation engine, all astrological calculations follow traditional Ziwei rules.',
+    baseUrlLabel: 'Base URL: ',
+    localTest: 'Local test: ',
+    s2: 'Authentication',
+    s2_text: 'All API requests require a <strong style="color:#e0c8ff">Bearer Token</strong> in the Authorization header. Purchase a plan at <a href="/shop.html" style="color:#7b68ee;text-decoration:none;border-bottom:1px solid rgba(123,104,238,.2)">shop</a> to get your API Key.',
+    s2_comment: '# Request header format',
+    s2_warn: '<strong>Note:</strong> Each API Key has a usage limit. Excess requests will be rejected. Check remaining calls via <strong style="color:#f0d060">/key/balance</strong>.',
+    s3: 'Get API Key',
+    step1: '<strong>Choose a Plan</strong> — Select a plan based on your needs',
+    step2: '<strong>Purchase Online</strong> — Complete payment and get your API Key instantly',
+    step3: '<strong>Add to Headers</strong> — Send the Key as <code style="color:#7ee0b0;font-family:monospace">Authorization: Bearer &lt;your_key&gt;</code>',
+    s3_btn: '🛒 Buy API Key',
+    s4: 'Endpoints',
+    c1_title: '🔮 Chart + Fortune Reading',
+    c1_desc: 'Full Ziwei chart calculation with detailed fortune reading (3000+ chars)',
+    c2_title: '🧮 Chart Only (No Reading)',
+    c2_desc: 'Pure chart calculation, returns chart data and 10-year cycles, no reading quota consumed',
+    c3_title: '🌅 Daily Horoscope',
+    c3_desc: 'Daily fortune based on your chart + current day: luck score, lucky colors, suggestions',
+    c4_title: '⏳ 10-Year Luck Cycle',
+    c4_desc: 'Detailed analysis of your current 10-year luck cycle & predictions',
+    paramsTitle: '📋 Parameters',
+    paramName: 'Name',
+    paramType: 'Type',
+    paramReq: 'Required',
+    paramDesc: 'Description',
+    curlTitle: '📎 cURL Example',
+    responseTitle: '📤 Response',
+    s5: 'Pricing',
+    pName: 'Business API',
+    pPer: 'One-time · Never expires',
+    pQuota: '6,000 calls',
+    pDesc: 'For indie devs & small teams<br>All endpoints · Support included',
+    pBtn: 'Buy Now →',
+    billingLabel: 'Billing: ',
+    billingText: 'Chart+reading costs 1 call, chart-only costs 0.5 calls, daily horoscope costs 1 call, 10-year cycle costs 5 calls.',
+    billing_support: 'Online payment · Instant activation',
+    cta_title: 'Ready to integrate Ziwei into your product?',
+    cta_text: 'Integrate in just 5 minutes · Try the chart for free first<br>Buy a Key and start using it immediately',
+    cta_btn1: '🌟 Try Chart Free',
+    cta_btn2: '🛒 Buy API Key',
+    link1: '🌟 Chart Demo',
+    link2: '🛒 Buy Key',
+    link3: '📖 API Docs',
+    link4: 'ℹ️ About',
+    footer: 'Ziwei Doushu API · © 2026',
+    disclaimer: '⚠️ For entertainment purposes only. Not professional advice.',
+    popularBadge: '🔥 Popular',
+  }
+};
+
+function setLang(l) {
+  const t = _T[l];
+  if (!t) return;
+  document.documentElement.lang = l === 'zh' ? 'zh-Hant' : 'en';
+  document.title = t.title;
+  document.getElementById('i18n_title').textContent = t.heroTitle;
+  document.getElementById('i18n_sub').innerHTML = t.heroSub;
+  document.getElementById('i18n_badge_instant').textContent = t.badgeInstant;
+  // Section titles
+  document.getElementById('s1_title').innerHTML = '<span class="num">1</span> ' + t.s1;
+  document.getElementById('s2_title').innerHTML = '<span class="num">2</span> ' + t.s2;
+  document.getElementById('s3_title').innerHTML = '<span class="num">3</span> ' + t.s3;
+  document.getElementById('s4_title').innerHTML = '<span class="num">4</span> ' + t.s4;
+  document.getElementById('s5_title').innerHTML = '<span class="num">5</span> ' + t.s5;
+  // Section 1 intro text
+  const s1p = document.querySelector('.section .card p[style*="font-size:14px"]');
+  if(s1p) s1p.innerHTML = t.s1_text;
+  // Base URL label
+  const baseUrlStrong = document.querySelector('.info-box .ib-text strong');
+  if(baseUrlStrong) baseUrlStrong.textContent = t.baseUrlLabel;
+  const localSpan = document.querySelector('.info-box .ib-text span');
+  if(localSpan) localSpan.textContent = t.localTest;
+  // Section 2
+  const s2p = document.querySelectorAll('.section .card p[style*="font-size:14px"]');
+  if(s2p[1]) s2p[1].innerHTML = t.s2_text;
+  const codeComment = document.querySelector('.code-block .comment');
+  if(codeComment) codeComment.textContent = t.s2_comment;
+  const warningBox = document.querySelector('.info-box.warning .ib-text');
+  if(warningBox) warningBox.innerHTML = t.s2_warn;
+  // Section 3 steps
+  const steps = document.querySelectorAll('.step-item .s-text');
+  if(steps[0]) steps[0].innerHTML = t.step1;
+  if(steps[1]) steps[1].innerHTML = t.step2;
+  if(steps[2]) steps[2].innerHTML = t.step3;
+  const shopBtn = document.querySelector('.steps + div a.p-btn');
+  if(shopBtn) shopBtn.innerHTML = t.s3_btn;
+  // Card titles & descriptions
+  document.getElementById('c1_title').innerHTML = t.c1_title;
+  document.getElementById('c1_desc').textContent = t.c1_desc;
+  document.getElementById('c2_title').innerHTML = t.c2_title;
+  document.getElementById('c2_desc').textContent = t.c2_desc;
+  document.getElementById('c3_title').innerHTML = t.c3_title;
+  document.getElementById('c3_desc').textContent = t.c3_desc;
+  document.getElementById('c4_title').innerHTML = t.c4_title;
+  document.getElementById('c4_desc').textContent = t.c4_desc;
+  // Section sub-titles (请求参数, curl示例, 返回示例)
+  const subTitles = document.querySelectorAll('.card [style*="font-size:12px;color:#5a4a7a;letter-spacing:1px;margin-bottom:6px"]');
+  subTitles.forEach(el => {
+    if(el.textContent.startsWith('📋')) el.innerHTML = t.paramsTitle;
+    else if(el.textContent.startsWith('📎')) el.innerHTML = t.curlTitle;
+    else if(el.textContent.startsWith('📤')) el.innerHTML = t.responseTitle;
+  });
+  // Table headers
+  document.querySelectorAll('.api-table th').forEach(th => {
+    const txt = th.textContent.trim();
+    if(txt === '参数' || txt === 'Name') th.textContent = t.paramName;
+    else if(txt === '类型' || txt === 'Type') th.textContent = t.paramType;
+    else if(txt === '必填' || txt === 'Required') th.textContent = t.paramReq;
+    else if(txt === '说明' || txt === 'Description') th.textContent = t.paramDesc;
+  });
+  // Pricing
+  const pName = document.querySelector('.price-card .p-name');
+  if(pName) pName.textContent = t.pName;
+  const pPer = document.querySelector('.price-card .p-per');
+  if(pPer) pPer.textContent = t.pPer;
+  const pQuota = document.querySelector('.price-card .p-quota');
+  if(pQuota) pQuota.textContent = t.pQuota;
+  const pDesc = document.querySelector('.price-card .p-desc');
+  if(pDesc) pDesc.innerHTML = t.pDesc;
+  const pBtn = document.querySelector('.price-card .p-btn');
+  if(pBtn) pBtn.innerHTML = t.pBtn;
+  // Popular badge
+  const pCard = document.querySelector('.price-card.popular');
+  if(pCard) {
+    const style = pCard.querySelector('style') || document.createElement('style');
+    // update ::before content via CSS custom property
+    pCard.style.setProperty('--popular-text', '"' + t.popularBadge + '"');
+    if(!pCard.querySelector('style')) {
+      style.textContent = '.price-card.popular::before{content:var(--popular-text,"🔥 推荐")}';
+      pCard.appendChild(style);
+    }
+  }
+  // Billing info
+  const billingStrong = document.querySelector('.info-box .ib-text strong');
+  // Already used above for base URL... need more specific selector
+  const infoBoxes = document.querySelectorAll('.info-box .ib-text');
+  // The billing info box is the one after pricing section
+  const billingBox = document.querySelector('.section .info-box .ib-text');
+  // Actually the billing is inside the pricing section, use a more specific approach
+  const allIbTexts = document.querySelectorAll('.info-box .ib-text');
+  allIbTexts.forEach(el => {
+    if(el.innerHTML.indexOf('计费说明') > -1 || el.innerHTML.indexOf('Billing:') > -1) {
+      el.innerHTML = '<strong>' + t.billingLabel + '</strong>' + t.billingText + '<br><span style="font-size:11px;color:#5a4a7a">' + t.billing_support + '</span>';
+    }
+  });
+  // CTA
+  const ctaTitle = document.querySelector('.card[style*="text-align:center"] [style*="font-size:18px"]');
+  if(ctaTitle) ctaTitle.textContent = t.cta_title;
+  const ctaText = document.querySelector('.card[style*="text-align:center"] p[style*="font-size:13px;color:#6a5a8a"]');
+  if(ctaText) ctaText.innerHTML = t.cta_text;
+  const ctaBtns = document.querySelectorAll('.card[style*="text-align:center"] .p-btn');
+  if(ctaBtns[0]) ctaBtns[0].innerHTML = t.cta_btn1;
+  if(ctaBtns[1]) ctaBtns[1].innerHTML = t.cta_btn2;
+  // Links
+  const navLinks = document.querySelectorAll('.links a');
+  if(navLinks[0]) navLinks[0].innerHTML = t.link1;
+  if(navLinks[1]) navLinks[1].innerHTML = t.link2;
+  if(navLinks[2]) navLinks[2].innerHTML = t.link3;
+  if(navLinks[3]) navLinks[3].innerHTML = t.link4;
+  // Footer
+  const footerEl = document.querySelector('.footer');
+  if(footerEl) footerEl.innerHTML = t.footer;
+  const disclaimerEl = document.getElementById('i18n_disclaimer');
+  if(disclaimerEl) disclaimerEl.textContent = t.disclaimer;
+  // Toggle buttons
+  document.getElementById('langZhBtn').style.borderColor = l === 'zh' ? '#e8a040' : '#3a2a1e';
+  document.getElementById('langZhBtn').style.color = l === 'zh' ? '#f0e0c8' : '#8a7050';
+  document.getElementById('langEnBtn').style.borderColor = l === 'en' ? '#e8a040' : '#3a2a1e';
+  document.getElementById('langEnBtn').style.color = l === 'en' ? '#f0e0c8' : '#8a7050';
+  localStorage.setItem('api_docs_lang', l);
+}
+
+// Auto-detect
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  let lang = params.get('lang');
+  if (!lang) lang = localStorage.getItem('api_docs_lang');
+  if (!lang) lang = navigator.language && navigator.language.startsWith('zh') ? 'zh' : 'en';
+  setLang(lang);
+})();
+</script>
+
+</body>

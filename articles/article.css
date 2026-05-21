@@ -1,0 +1,183 @@
+/* ── 紫微斗数文章 · 共享样式 ── */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  background:#0a0a14;color:#c8c0d8;min-height:100vh;line-height:1.8;overflow-x:hidden
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(1px 1px at 10% 20%,rgba(255,255,255,.3),transparent),
+    radial-gradient(1px 1px at 30% 60%,rgba(255,255,255,.2),transparent),
+    radial-gradient(1px 1px at 50% 10%,rgba(255,255,255,.25),transparent),
+    radial-gradient(1.5px 1.5px at 85% 65%,rgba(255,215,0,.2),transparent),
+    radial-gradient(1.5px 1.5px at 25% 55%,rgba(255,215,0,.2),transparent);
+  pointer-events:none;z-index:0
+}
+body::after{
+  content:'';position:fixed;top:50%;left:50%;
+  width:700px;height:700px;margin:-350px 0 0 -350px;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent,rgba(255,215,0,.04),transparent 30%,rgba(255,215,0,.02),transparent 60%,rgba(255,215,0,.03),transparent);
+  pointer-events:none;z-index:0;animation:bgSpin 40s linear infinite
+}
+@keyframes bgSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+/* ── Navigation Bar ── */
+.top-nav{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 18px;background:rgba(10,10,20,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(232,160,64,.1)
+}
+.top-nav .logo{font-size:14px;font-weight:700;color:#e8b860;text-decoration:none;letter-spacing:1px}
+.top-nav .logo span{color:#9a7850;font-weight:400}
+.top-nav .nav-links{display:flex;gap:10px}
+.top-nav .nav-links a{
+  padding:5px 14px;font-size:13px;color:#8a7050;text-decoration:none;
+  border:1px solid #3a2a1e;border-radius:8px;transition:all .2s;white-space:nowrap
+}
+.top-nav .nav-links a:hover{color:#e8b860;border-color:#e8a040}
+.lang-nav-btn{background:transparent;border:1px solid #3a2a1e;color:#7a6a9a;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:all .2s}
+.lang-nav-btn:hover{border-color:#e8a040;color:#e8a040}
+.lang-nav-btn.active{background:rgba(232,160,64,.12);border-color:#e8a040;color:#e8b860;font-weight:600}
+
+/* ── Container ── */
+.container{max-width:800px;margin:0 auto;padding:20px;position:relative;z-index:1}
+
+/* ── List Page Hero ── */
+.list-hero{text-align:center;padding:30px 0 20px}
+.list-hero h1{
+  font-size:26px;font-weight:800;letter-spacing:3px;
+  background:linear-gradient(135deg,#ffe066,#ffd700,#b8860b);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:8px
+}
+.list-hero .sub{font-size:12px;color:#7a6a9a;letter-spacing:1px;line-height:1.6}
+.list-hero .cta-row{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.list-hero .cta-row a{
+  font-size:11px;padding:6px 16px;border-radius:8px;text-decoration:none;font-weight:500;transition:all .2s
+}
+.list-hero .cta-row .primary{background:linear-gradient(135deg,#e8a040,#d08020);color:#0a0a14}
+.list-hero .cta-row .primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(232,160,64,.3)}
+.list-hero .cta-row .secondary{color:#8a7050;border:1px solid #3a2a1e}
+.list-hero .cta-row .secondary:hover{color:#e8b860;border-color:#e8a040}
+
+/* ── Filters ── */
+.filter-bar{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.filter-bar button{
+  background:transparent;border:1px solid #3a2a1e;color:#7a6a9a;
+  padding:5px 14px;border-radius:8px;font-size:11px;cursor:pointer;transition:all .2s;font-family:inherit
+}
+.filter-bar button:hover{border-color:#e8a040;color:#e8a040}
+.filter-bar button.active{background:rgba(232,160,64,.12);border-color:#e8a040;color:#e8b860;font-weight:600}
+
+/* ── Article Cards ── */
+.article-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.article-card{
+  background:linear-gradient(135deg,rgba(26,26,46,.93),rgba(16,16,30,.93));
+  border:1px solid rgba(232,160,64,.12);border-radius:14px;padding:18px 20px;
+  transition:all .3s;cursor:pointer;position:relative;overflow:hidden
+}
+.article-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,215,0,.3),transparent);
+  opacity:0;transition:opacity .3s
+}
+.article-card:hover{border-color:rgba(232,160,64,.35);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.article-card:hover::before{opacity:1}
+.article-card a{text-decoration:none;color:inherit;display:block}
+.article-card .card-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.article-card .date{font-size:10px;color:#5a4a6a;letter-spacing:.5px}
+.article-card .tag{
+  font-size:9px;padding:1px 8px;border-radius:4px;background:rgba(255,215,0,.1);
+  border:1px solid rgba(255,215,0,.12);color:#d4a030;letter-spacing:.5px
+}
+.article-card .title{
+  font-size:16px;font-weight:700;color:#e8d8c0;line-height:1.4;
+  margin-bottom:6px;transition:color .2s
+}
+.article-card:hover .title{color:#ffd700}
+.article-card .desc{font-size:12px;color:#8a7a9a;line-height:1.6}
+.article-card .lang-tags{display:flex;gap:4px;margin-top:8px}
+.article-card .lang-tags .lt{font-size:9px;padding:1px 7px;border-radius:3px;border:1px solid;letter-spacing:.5px}
+.article-card .lang-tags .lt.hant{border-color:rgba(232,160,64,.3);color:#e8a040}
+.article-card .lang-tags .lt.hans{border-color:rgba(123,104,238,.3);color:#a080ff}
+.article-card .lang-tags .lt.en{border-color:rgba(100,200,150,.3);color:#64c896}
+
+/* ── Article Detail Page ── */
+.article-header{text-align:center;padding:24px 0 16px}
+.article-header .meta{font-size:10px;color:#5a4a6a;letter-spacing:1px;margin-bottom:6px}
+.article-header .meta .tag{
+  display:inline-block;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.12);
+  border-radius:4px;padding:1px 8px;font-size:9px;color:#d4a030;margin-left:4px
+}
+.article-header h1{
+  font-size:24px;font-weight:800;letter-spacing:2px;line-height:1.4;
+  background:linear-gradient(135deg,#ffe066,#ffd700,#b8860b);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent
+}
+.article-body{font-size:15px;color:#c8c0d8;padding:0 4px}
+.article-body h2{
+  font-size:18px;font-weight:700;color:#ffd700;margin:28px 0 12px;
+  padding-bottom:8px;border-bottom:1px solid rgba(255,215,0,.08);letter-spacing:1.5px
+}
+.article-body h3{font-size:16px;font-weight:600;color:#ffe066;margin:20px 0 10px;letter-spacing:1px}
+.article-body p{margin-bottom:16px}
+.article-body a{color:#ffd700;text-decoration:none;border-bottom:1px solid rgba(255,215,0,.2);transition:all .2s}
+.article-body a:hover{color:#ffe066;border-color:#ffd700}
+.article-body ul,.article-body ol{margin:0 0 16px 20px}
+.article-body li{margin-bottom:6px}
+
+/* ── Lang Switcher ── */
+.lang-switcher{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.lang-btn{
+  background:transparent;border:1px solid #3a2a1e;color:#7a6a9a;
+  padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;
+  letter-spacing:1px;transition:all .2s;text-decoration:none;font-family:inherit
+}
+.lang-btn:hover{border-color:#e8a040;color:#e8a040}
+.lang-btn.active{background:rgba(232,160,64,.12);border-color:#e8a040;color:#e8b860;font-weight:600}
+
+/* ── CTA Section ── */
+.cta-section{
+  margin-top:32px;padding:28px 24px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(26,26,46,.95),rgba(16,16,30,.95));
+  border:1px solid rgba(255,215,0,.15);text-align:center
+}
+.cta-section .cta-title{font-size:18px;font-weight:700;color:#ffe066;margin-bottom:10px;letter-spacing:1.5px}
+.cta-section p{font-size:13px;color:#8a7a9a;margin-bottom:14px!important;text-indent:0!important}
+.cta-section .cta-btn{
+  display:inline-block;padding:10px 26px;margin:4px 6px;border-radius:10px;
+  text-decoration:none;font-size:13px;font-weight:600;letter-spacing:1px;transition:all .3s
+}
+.cta-section .cta-btn.primary{
+  background:linear-gradient(135deg,#e8a040,#d08020);color:#0a0a14;box-shadow:0 4px 16px rgba(232,160,64,.25)
+}
+.cta-section .cta-btn.primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(232,160,64,.4)}
+.cta-section .cta-btn.secondary{background:transparent;color:#e8b860;border:1px solid rgba(232,160,64,.25)}
+.cta-section .cta-btn.secondary:hover{border-color:#e8a040;background:rgba(232,160,64,.08)}
+
+/* ── Footer ── */
+.footer{text-align:center;padding:30px 0;color:#3a2a3a;font-size:11px;letter-spacing:.5px;line-height:1.8}
+.footer a{color:#5a4a5a;text-decoration:none}
+.footer a:hover{color:#8a7050}
+
+/* ── Reading Progress ── */
+.progress-bar{
+  position:fixed;top:0;left:0;height:2px;z-index:200;
+  background:linear-gradient(90deg,#e8a040,#ffd700);
+  transition:width .1s linear;width:0
+}
+
+/* ── Mobile ── */
+@media(max-width:600px){
+  .list-hero h1{font-size:22px}
+  .article-card{padding:14px 16px}
+  .article-card .title{font-size:15px}
+  .article-header h1{font-size:20px}
+  .article-body{font-size:14px}
+  .top-nav{padding:7px 12px}
+  .top-nav .nav-links a{font-size:11px;padding:4px 10px}
+  .lang-nav-btn{font-size:10px;padding:3px 8px}
+  .top-nav .logo{font-size:12px}
+}

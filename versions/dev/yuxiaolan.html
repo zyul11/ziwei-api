@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:#1a1210;color:#f0e0c8;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.login-box{background:rgba(255,255,255,.03);border:1px solid #3a2a1e;border-radius:12px;padding:40px;width:340px;text-align:center}
+.login-box h1{font-size:20px;color:#e8b860;margin-bottom:20px}
+.login-box input{width:100%;padding:12px;background:#2a1a12;border:1px solid #4a3a2a;border-radius:8px;color:#f0e0c8;font-size:15px;outline:none;margin-bottom:14px}
+.login-box input:focus{border-color:#e8b860}
+.login-box .btn{width:100%;padding:12px;background:#e8b860;border:none;border-radius:8px;color:#1a1210;font-size:15px;font-weight:bold;cursor:pointer}
+.login-box .btn:hover{background:#d4a850}
+.login-box .error{color:#dd5544;font-size:13px;margin-top:10px;display:none}
+.panel{display:none;width:100%;max-width:860px;padding:20px;min-height:100vh;margin:0 auto}
+.panel .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.panel .header h1{font-size:20px;color:#e8b860}
+.panel .header .user{font-size:12px;color:#5a4a3a;cursor:pointer}
+.panel .header .user:hover{color:#e8b860}
+.order{border:1px solid #3a2a1e;border-radius:10px;padding:14px;margin-bottom:10px;background:rgba(255,255,255,.02)}
+.order.paid{border-color:#2a5a2a;opacity:.6}
+.order-id{font-size:11px;color:#8a7050;font-family:monospace}
+.order-info{display:flex;gap:16px;font-size:13px;margin:6px 0;flex-wrap:wrap}
+.order-info span{color:#9a7850}
+.btn{padding:8px 20px;border:none;border-radius:8px;font-size:13px;cursor:pointer}
+.btn-pay{background:#1ab36e;color:#fff}
+.btn-pay:hover{background:#159a5a}
+.status{font-size:12px;display:inline-block;padding:2px 8px;border-radius:10px}
+.status.pending{background:rgba(232,160,64,.15);color:#e8a040}
+.status.paid{background:rgba(26,179,110,.15);color:#1ab36e}
+.empty{text-align:center;padding:40px;color:#5a4a3a;font-size:14px}
+.refresh{float:right;padding:6px 14px;background:#3a2a1e;border:1px solid #5a4a3a;border-radius:8px;color:#9a7850;cursor:pointer;font-size:12px}
+.refresh:hover{background:#4a3a2e}
+.key-display{font-size:12px;color:#4ae;font-family:monospace;background:rgba(68,170,238,.08);padding:4px 8px;border-radius:4px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="login-box" id="loginBox">
+  <h1>🔐 管理后台</h1>
+  <input type="password" id="pwdInput" placeholder="输入管理密码" onkeydown="if(event.key==='Enter')doLogin()">
+  <button class="btn" onclick="doLogin()">登录</button>
+  <div class="error" id="loginError">密码错误</div>
+</div>
+<div class="panel" id="panel">
+  <div class="header">
+    <h1>📦 订单管理</h1>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span style="font-size:11px;color:#5a4a3a" id="emailDisplay"></span>
+      <button class="refresh" onclick="loadOrders()">🔄 刷新</button>
+      <span class="user" onclick="logout()">退出</span>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#5a4a3a;margin-bottom:16px">
+    收到用户付款后，点「确认收款」自动生成 API Key 并发送邮件
+  </div>
+  <div id="orderList"><div class="empty">加载中...</div></div>
+</div>
+<script>
+const API = window.location.origin;
+let TOKEN = sessionStorage.getItem('admin_token') || '';
+
+if(TOKEN){
+  document.getElementById('loginBox').style.display='none';
+  document.getElementById('panel').style.display='block';
+  loadOrders();
+  loadSettings();
+}
+
+async function doLogin(){
+  const pwd = document.getElementById('pwdInput').value;
+  if(!pwd){ document.getElementById('loginError').style.display='block'; return; }
+  try{
+    const r = await fetch(API+'/v1/admin/login?password='+encodeURIComponent(pwd), {method:'POST'});
+    const d = await r.json();
+    if(d.success){
+      TOKEN = d.token;
+      sessionStorage.setItem('admin_token', TOKEN);
+      document.getElementById('loginBox').style.display='none';
+      document.getElementById('panel').style.display='block';
+      document.getElementById('loginError').style.display='none';
+      loadOrders();
+      loadSettings();
+    }else{
+      document.getElementById('loginError').style.display='block';
+    }
+  }catch(e){
+    document.getElementById('loginError').textContent='网络错误';
+    document.getElementById('loginError').style.display='block';
+  }
+}
+
+function logout(){
+  sessionStorage.removeItem('admin_token');
+  location.reload();
+}
+
+async function loadSettings(){
+  try{
+    const r = await fetch(API+'/v1/admin/settings?token='+TOKEN);
+    const d = await r.json();
+    if(d.success && d.data.paypal_email){
+      document.getElementById('emailDisplay').textContent='📧 '+d.data.paypal_email;
+    }
+  }catch(e){}
+}
+
+async function loadOrders(){
+  const el = document.getElementById('orderList');
+  try{
+    const r = await fetch(API+'/v1/admin/orders?token='+TOKEN);
+    const d = await r.json();
+    if(!d.success || !d.data || !d.data.length){
+      el.innerHTML = '<div class="empty">📭 暂无订单</div>';
+      return;
+    }
+    el.innerHTML = d.data.map(o=>{
+      const paid = o.status === 'paid';
+      const src = o.source || (o.id && o.id.startsWith('SEO') ? 'seo' : 'ziwei');
+      const badge = src === 'seo'
+        ? '<span style="font-size:10px;background:rgba(137,180,250,.15);color:#89b4fa;padding:2px 8px;border-radius:4px;margin-left:6px">SEO</span>'
+        : '<span style="font-size:10px;background:rgba(203,166,247,.15);color:#cba6f7;padding:2px 8px;border-radius:4px;margin-left:6px">紫薇</span>';
+      return `<div class="order${paid?' paid':''}">
+        <div class="order-id">${o.id} ${badge}</div>
+        <div class="order-info">
+          <span>📦 ${o.package_name}</span>
+          <span>💰 $${o.amount}</span>
+          ${o.buyer_email ? '<span>📧 '+o.buyer_email+'</span>' : ''}
+          <span><span class="status ${paid?'paid':'pending'}">${paid?'✅ 已支付':'⏳ 待付款'}</span></span>
+        </div>
+        <div style="font-size:11px;color:#5a4a3a">${o.created_at}</div>
+        ${paid
+          ? `<div style="margin-top:6px"><span class="key-display">🔑 ${o.api_key}</span></div>`
+          : `<button class="btn btn-pay" onclick="confirmPay('${o.id}')" style="margin-top:8px">✅ 确认收款并出 Key</button>`
+        }
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML = '<div class="empty">❌ 加载失败</div>';
+  }
+}
+
+async function confirmPay(oid){
+  if(!confirm('确认收到付款？将自动生成 Key 并发邮件给买家')) return;
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = '⏳ 处理中...';
+  try{
+    const r = await fetch(API+'/v1/admin/confirm?order_id='+oid+'&token='+TOKEN, {method:'POST'});
+    const d = await r.json();
+    if(d.success) loadOrders();
+    else alert('失败: '+d.error);
+  }catch(e){
+    alert('错误: '+e.message);
+    btn.disabled = false; btn.textContent = '✅ 确认收款并出 Key';
+  }
+}
+</script>
+</body>
+</html>

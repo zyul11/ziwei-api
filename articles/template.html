@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5545263418745440" crossorigin="anonymous"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="alternate icon" href="/favicon.ico" sizes="any">
+<title>{TITLE}</title>
+<meta name="description" content="{DESC}">
+<meta property="og:type" content="article">
+<meta property="og:title" content="{OG_TITLE}">
+<meta property="og:description" content="{OG_DESC}">
+<meta property="og:url" content="https://ziweiapi.site/articles/{FILENAME}">
+<meta property="og:locale" content="{LOCALE}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{TWITTER_TITLE}">
+<meta name="keywords" content="{KEYWORDS}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://ziweiapi.site/articles/{FILENAME}">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  background:#0a0a14;color:#d0c8e0;min-height:100vh;position:relative;line-height:1.8
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(1px 1px at 10%20%,rgba(255,255,255,.3),transparent),
+             radial-gradient(1px 1px at 30%60%,rgba(255,255,255,.2),transparent),
+             radial-gradient(1px 1px at 50%10%,rgba(255,255,255,.25),transparent),
+             radial-gradient(1.5px 1.5px at 85%65%,rgba(255,215,0,.2),transparent),
+             radial-gradient(1.5px 1.5px at 25%55%,rgba(123,104,238,.2),transparent);
+  pointer-events:none;z-index:0
+}
+body::after{
+  content:'';position:fixed;top:50%;left:50%;
+  width:700px;height:700px;margin:-350px 0 0 -350px;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent,rgba(123,104,238,.04),transparent 30%,rgba(123,104,238,.02),transparent 60%,rgba(123,104,238,.03),transparent);
+  pointer-events:none;z-index:0;animation:bgSpin 40s linear infinite
+}
+@keyframes bgSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+.container{max-width:800px;margin:0 auto;padding:24px 20px;position:relative;z-index:1}
+.article-header{text-align:center;padding:30px 0 20px;border-bottom:1px solid rgba(123,104,238,.12);margin-bottom:24px}
+.article-header .meta{font-size:11px;color:#5a4a7a;letter-spacing:1px;margin-bottom:8px}
+.article-header .meta .tag{display:inline-block;background:rgba(123,104,238,.12);border:1px solid rgba(123,104,238,.15);border-radius:4px;padding:1px 8px;font-size:10px;color:#7b68ee;margin-left:6px}
+.article-header h1{
+  font-family:'Noto Serif SC','Noto Serif SC',serif;font-size:26px;font-weight:900;
+  background:linear-gradient(135deg,#e0c8ff,#7b68ee,#4a3aa0);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;line-height:1.4
+}
+.article-body{font-size:15px;color:#c8c0d8;padding:0 4px}
+.article-body h2{font-size:18px;font-weight:700;color:#c4a0ff;margin:28px 0 12px;padding-bottom:6px;border-bottom:1px solid rgba(123,104,238,.1);letter-spacing:1.5px}
+.article-body p{margin-bottom:16px;text-indent:2em}
+.article-body a{color:#7b68ee;text-decoration:none;border-bottom:1px solid rgba(123,104,238,.2);transition:all .2s}
+.article-body a:hover{color:#a080ff;border-color:#7b68ee}
+.cta-section{
+  margin-top:24px;padding:14px 18px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(26,26,46,.93),rgba(16,16,30,.93));
+  border:1px solid rgba(123,104,238,.18);text-align:center
+}
+.city-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(123,104,238,.08);border:1px solid rgba(123,104,238,.12);
+  border-radius:20px;padding:3px 12px;font-size:11px;color:#9a8aaa
+}
+.top-nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:rgba(10,10,20,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(232,160,64,.1)}
+.top-nav .logo{font-size:14px;font-weight:700;color:#e8b860;text-decoration:none;letter-spacing:1px}
+.top-nav .logo span{color:#9a7850;font-weight:400}
+.top-nav .nav-links{display:flex;gap:10px}
+.top-nav .nav-links a{padding:5px 14px;font-size:13px;color:#8a7050;text-decoration:none;border:1px solid #3a2a1e;border-radius:8px;transition:all .2s;white-space:nowrap}
+.top-nav .nav-links a:hover{color:#e8b860;border-color:#e8a040}
+.progress-bar{position:fixed;top:0;left:0;height:2px;z-index:200;background:linear-gradient(90deg,#e8a040,#ffd700);transition:width .1s linear;width:0}
+.footer{text-align:center;padding:30px 0;color:#3a2a5a;font-size:11px;letter-spacing:.5px;line-height:1.8}
+.lang-nav-btn{background:transparent;border:1px solid #3a2a1e;color:#7a6a9a;padding:2px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-family:inherit;letter-spacing:.5px;text-decoration:none;transition:all .2s}
+.lang-nav-btn:hover{border-color:#e8a040;color:#e8a040}
+.lang-nav-btn.active{background:rgba(232,160,64,.12);border-color:#e8a040;color:#e8b860;font-weight:600}
+@media(max-width:600px){.article-header h1{font-size:22px}.article-body{font-size:14px}.top-nav{padding:7px 12px}.top-nav .nav-links a{font-size:11px;padding:4px 10px}.top-nav .logo{font-size:12px}}
+</style>
+
+<meta property="og:image" content="https://ziweiapi.site/og-image.jpg">
+<meta property="og:image:alt" content="紫微斗數命盤推演">
+
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "{SCHEMA_HEADLINE}",
+  "description": "{SCHEMA_DESC}",
+  "datePublished": "{DATE}",
+  "author": {"@type": "Person", "name": "Ziwei Master"},
+  "publisher": {"@type": "Organization", "name": "Ziwei API"},
+  "inLanguage": "{LANG}"
+}</script>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="top-nav" style="padding:6px 16px">
+  <a href="/" class="logo">✦ 紫微斗數 <span>| 文章</span></a>
+  <div class="nav-links" style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+    <span style="display:flex;gap:3px;margin-right:4px">
+      <a href="{BASE}.html" class="lang-nav-btn active">繁</a>
+      <a href="{BASE}-zhs.html" class="lang-nav-btn">简</a>
+      <a href="{BASE}-en.html" class="lang-nav-btn">EN</a>
+    </span>
+    <a href="/articles/">📚 全部文章</a>
+    <a href="/">🏠 首頁</a>
+    <a href="/shop.html">💳 購買 Key</a>
+  </div>
+</div>
+<div class="container">
+  <article>
+  <div class="article-header">
+      <div class="meta"><span class="tag">{TAG_EMOJI} {TAG}</span>
+        {CITY_BADGE}
+      </div>
+      <h1>{TITLE}</h1>
+    </div>
+    <div class="article-body">
+{CONTENT}
+    </div>
+  </article>
+
+  <div class="cta-section" style="margin-top:24px;padding:16px 20px;text-align:center">
+    <div style="font-size:14px;font-weight:700;color:#e8b860;margin-bottom:2px">{SUB_TITLE}</div>
+    <div style="font-size:10px;color:#7a6a9a;margin-bottom:10px">{SUB_DESC}</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(50,32,20,.8);border:1px solid rgba(232,160,64,.15);border-radius:10px;padding:6px 12px">
+        <span style="font-size:16px">🌤️</span>
+        <div style="text-align:left">
+          <div style="font-size:9px;font-weight:700;color:#f0e0c8;line-height:1.2">{SUB_MONTHLY_LABEL}</div>
+          <div><span style="font-size:14px;font-weight:700;color:#e8b860">$5.9</span> <span style="font-size:9px;color:#9a7850">{SUB_MONTHLY_PER}</span></div>
+        </div>
+        <button onclick="openSubModal('monthly')" style="background:linear-gradient(135deg,#e8a040,#d08020);color:#0a0a14;font-weight:600;font-size:10px;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">{SUB_BTN_MONTHLY}</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(40,20,6,.8);border:1px solid rgba(232,160,64,.3);border-radius:10px;padding:6px 12px;position:relative">
+        <span style="position:absolute;top:-5px;right:-3px;background:linear-gradient(135deg,#e8a040,#f0d080);color:#0a0a14;font-size:7px;font-weight:700;padding:1px 6px;border-radius:4px">🔥</span>
+        <span style="font-size:16px">🌟</span>
+        <div style="text-align:left">
+          <div style="font-size:9px;font-weight:700;color:#f0e0c8;line-height:1.2">{SUB_YEARLY_LABEL}</div>
+          <div><span style="font-size:14px;font-weight:700;color:#e8b860">$39.9</span> <span style="font-size:9px;color:#9a7850">{SUB_YEARLY_PER}</span></div>
+        </div>
+        <button onclick="openSubModal('yearly')" style="background:linear-gradient(135deg,#f0b850,#e89830);color:#0a0a14;font-weight:700;font-size:10px;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;white-space:nowrap">{SUB_BTN_YEARLY}</button>
+      </div>
+    </div>
+    <div id="subStatus" style="margin-top:6px;font-size:10px;min-height:14px;color:#7a6a9a"></div>
+  </div>
+
+  <div class="footer">
+    <p>紫微斗数 · 命盘推演 | <a href="/index.html" style="color:#5a4a7a;text-decoration:none;">免费排盘</a> | <a href="/shop.html" style="color:#5a4a7a;text-decoration:none;">购买 Key</a> | <a href="https://textools.site">文本工具</a></p>
+    <p style="margin-top:6px;font-size:10px">© 2026 紫微斗数 · 版权所有</p>
+</div>
+<script>
+window.addEventListener("scroll", function(){
+  var h = document.documentElement.scrollHeight - window.innerHeight;
+  var p = (window.scrollY / h) * 100;
+  document.getElementById("progressBar").style.width = p + "%";
+});
+</script>
+<script src="/articles/subscription.js?v=1779255737"></script>
+</body>
+</html>

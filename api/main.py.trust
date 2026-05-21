@@ -1,0 +1,827 @@
+"""
+紫微斗数 API — 排盘 + AI 解读 + API Key 计费
+"""
+import json
+import sqlite3
+import subprocess
+import secrets
+import os
+import json as jmod
+from datetime import datetime, timedelta, date
+from pathlib import Path
+from contextlib import asynccontextmanager
+from fastapi.staticfiles import StaticFiles
+
+# Load .env for local dev
+env_path = Path(__file__).parent.parent / ".env"
+if env_path.exists():
+    for line in env_path.read_text().strip().splitlines():
+        if "=" in line and not line.startswith("#"):
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip())
+
+from fastapi import FastAPI, HTTPException, Header, Depends, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, Field
+from openai import OpenAI
+from typing import Optional
+
+# ─── config ────────────────────────────────────────────────
+BASE_DIR = Path(__file__).parent.parent
+ENGINE_PATH = BASE_DIR / "api" / "ziwei-engine.js"
+DATABASE_PATH = Path("/data/ziwei.db") if Path("/data").exists() else BASE_DIR / "data" / "ziwei.db"
+DEEPSEEK_API_KEY = ""
+
+# PayJS 支付配置（从 .env 读取）
+PAYJS_MCHID = os.getenv("PAYJS_MCHID", "your_mchid_here")
+PAYJS_KEY = os.getenv("PAYJS_KEY", "your_key_here")
+PAYJS_NOTIFY_URL = os.getenv("PAYJS_NOTIFY_URL", "")
+
+# will be set during startup
+client: Optional[OpenAI] = None
+db_conn: Optional[sqlite3.Connection] = None
+
+# ─── lifespan ───────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global client, db_conn
+    
+    import os
+    api_key = os.getenv("DEEPSEEK_API_KEY", "")
+    if api_key and api_key != "sk-your-key-here":
+        client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+    
+    # init DB
+    DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    db_conn = sqlite3.connect(str(DATABASE_PATH), check_same_thread=False)
+    db_conn.execute("""
+        CREATE TABLE IF NOT EXISTS api_keys (
+            key TEXT PRIMARY KEY,
+            name TEXT,
+            balance INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now')),
+            expires_at TEXT,
+            active INTEGER DEFAULT 1
+        )
+    """)
+    db_conn.execute("""
+        CREATE TABLE IF NOT EXISTS usage_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            api_key TEXT,
+            endpoint TEXT,
+            input_tokens INTEGER DEFAULT 0,
+            output_tokens INTEGER DEFAULT 0,
+            cost INTEGER DEFAULT 1,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    db_conn.execute("""
+        CREATE TABLE IF NOT EXISTS orders (
+            id TEXT PRIMARY KEY,
+            package TEXT NOT NULL,
+            amount REAL NOT NULL,
+            pay_method TEXT DEFAULT 'alipay',
+            status TEXT DEFAULT 'pending',
+            api_key TEXT,
+            payjs_order_id TEXT,
+            created_at TEXT DEFAULT (datetime('now')),
+            paid_at TEXT
+        )
+    """)
+    db_conn.commit()
+    
+    yield
+    
+    if db_conn:
+        db_conn.close()
+
+app = FastAPI(title="紫微斗数 API", version="1.0.0", lifespan=lifespan)
+
+# CORS — 允许本地网页测试
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 静态文件 — index.html shop.html 等通过 API 服务器统一提供
+static_dir = Path(__file__).parent.parent
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+    from fastapi.responses import RedirectResponse, HTMLResponse
+    @app.get("/app/{page}")
+    def serve_page(page: str):
+        file_path = static_dir / page
+        if file_path.exists():
+            return HTMLResponse(file_path.read_text(encoding="utf-8"))
+        return HTMLResponse("Page not found", status_code=404)
+    @app.get("/")
+    async def serve_root():
+        return FileResponse(static_dir / "index.html")
+
+# ─── models ─────────────────────────────────────────────────
+class PaiPanRequest(BaseModel):
+    year: int = Field(..., ge=1900, le=2100, description="公历年")
+    month: int = Field(..., ge=1, le=12, description="公历月")
+    day: int = Field(..., ge=1, le=31, description="公历日")
+    hour: float = Field(..., ge=0, le=23, description="小时(0~23)")
+    gender: str = Field(..., pattern="^(male|female)$", description="性别")
+    style: str = Field("modern", pattern="^(modern|classical|poetic)$", description="解读风格")
+    city: str = Field("", max_length=100, description="所在城市，如新加坡/台北/香港/吉隆坡")
+
+class PaiPanResponse(BaseModel):
+    success: bool
+    data: Optional[dict] = None
+    error: Optional[str] = None
+
+class KeyCreateRequest(BaseModel):
+    name: str = "default"
+    quota: int = 500
+
+class KeyCreateResponse(BaseModel):
+    key: str
+    balance: int
+
+# ─── middleware ─────────────────────────────────────────────
+def get_api_key(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(401, "Missing Authorization header")
+    key = authorization.replace("Bearer ", "").strip()
+    
+    cur = db_conn.execute("SELECT balance, active, expires_at FROM api_keys WHERE key=?", (key,))
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(403, "Invalid API key")
+    if not row[1]:
+        raise HTTPException(403, "API key is disabled")
+    if row[2] and datetime.fromisoformat(row[2]) < datetime.now():
+        raise HTTPException(403, "API key expired")
+    if row[0] <= 0:
+        raise HTTPException(402, "Insufficient balance")
+    return key
+
+def deduct_balance(key: str, cost: int = 1):
+    db_conn.execute("UPDATE api_keys SET balance = balance - ? WHERE key = ?", (cost, key))
+    db_conn.commit()
+
+def log_usage(key: str, endpoint: str, cost: int = 1, in_tokens: int = 0, out_tokens: int = 0):
+    db_conn.execute(
+        "INSERT INTO usage_log (api_key, endpoint, input_tokens, output_tokens, cost) VALUES (?, ?, ?, ?, ?)",
+        (key, endpoint, in_tokens, out_tokens, cost)
+    )
+    db_conn.commit()
+
+# ─── engine call ────────────────────────────────────────────
+import shutil
+_NODE = shutil.which("node") or "/Users/air/.local/bin/node"
+
+def run_engine(year: int, month: int, day: int, hour: float, gender: str) -> dict:
+    input_data = json.dumps({"year": year, "month": month, "day": day, "hour": hour, "gender": gender})
+    result = subprocess.run(
+        [_NODE, str(ENGINE_PATH)],
+        input=input_data,
+        capture_output=True,
+        text=True,
+        timeout=10,
+        cwd=str(BASE_DIR),
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"Engine error: {result.stderr}")
+    return json.loads(result.stdout)
+
+# ─── AI prompts ─────────────────────────────────────────────
+def load_style_prompt(style: str) -> str:
+    """加载对应风格的提示词"""
+    prompts = {
+        "modern": """你是一个精通紫微斗数的命理师，请以年轻、亲切的语气为用户解读命盘。
+
+注意事项：
+- 使用口语化表达，适当加入emoji
+- 只使用命盘已有数据，不编造不存在的信息
+- 分析重点：命宫主星特性、财帛宫、官禄宫、夫妻宫
+- 如果用户提供了所在城市，结合该城市的地理方位、当地行业特点、当地文化习俗给出针对性解读
+- 给出实用建议而非通用鸡汤
+- 结尾注明"仅供娱乐参考，AI生成内容不构成专业建议"
+""",
+        "classical": """你是精通紫微斗数的传统命理师，以半文言风格为用户解读命盘。
+注意事项：
+- 适当引用传统断语
+- 强调五行生克、四化流转
+- 分析各宫星曜组合的吉凶
+- 结尾注明"仅供娱乐参考"
+""",
+        "poetic": """你是治愈系紫微占星师，以诗意短句为用户解读命盘。
+注意事项：
+- 每段3-5句，语言优美有韵律
+- 侧重性格画像和人生阶段建议
+- 传递温暖正向的力量
+- 结尾注明"仅供娱乐参考"
+""",
+    }
+    return prompts.get(style, prompts["modern"])
+
+# ─── 城市特征库 ────────────────────────────────────────────────
+CITY_PROFILES = {
+    "新加坡": "新加坡是国际金融中心、港口贸易枢纽和东南亚科技重镇，拥有花园城市的美誉，多元种族（华人/马来人/印度人）和谐共处",
+    "吉隆坡": "吉隆坡是马来西亚首都与商业中心，华人社区活跃，热带气候全年湿热，以金融、旅游业和制造业为经济支柱",
+    "曼谷": "曼谷是泰国首都与东南亚旅游大城，华人文化深厚，以旅游服务业、国际贸易和食品加工业为主",
+    "雅加达": "雅加达是印尼首都与东南亚最大城市，华人商业网络发达，热带海洋性气候，重点产业为金融服务与电商",
+    "马尼拉": "马尼拉是菲律宾首都，华人社区历史悠久，热带季风气候，以BPO外包产业、旅游业和服务业为支柱",
+    "胡志明": "胡志明市是越南经济中心与东南亚新兴制造业枢纽，华人聚集，热带季风气候，近年科技与电商快速崛起",
+    "台北": "台北是台湾政治经济文化中心，科技产业发达（半导体/ICT产业链），服务业成熟，生活步调快但整体偏悠闲",
+    "香港": "香港是国际金融中心与中西方文化交汇之城，商业发达、竞争激烈，金融/物流/贸易是经济三大支柱",
+    "澳门": "澳门是世界旅游休闲中心与博彩业重镇，中西文化交融，以旅游/娱乐/会展为主，生活节奏相对舒缓",
+    "上海": "上海是中国经济与金融中心，国际化大都市，金融/科技/制造业发达，长三角产业集群",
+    "北京": "北京是中国政治文化教育中心，互联网/科技/文创产业聚集，作为古都文化底蕴深厚，职场竞争激烈",
+    "深圳": "深圳是中国科技之都与创新中心，粤港澳大湾区核心城市，华为/腾讯/大疆等企业总部所在地",
+    "广州": "广州是中国南大门与千年商都，岭南文化中心，制造业/商贸/外贸发达，美食之都",
+    "杭州": "杭州是长三角数字经济重镇，阿里巴巴总部所在地，电商/金融科技/文创产业发达",
+    "成都": "成都是中国西南消费中心与文创之都，休闲文化浓厚，游戏/文创/电子产业发展迅猛",
+    "高雄": "高雄是台湾南部最大城市与港口都市，重工业与航运业发达，生活步调相对慢，气候温暖宜人",
+    "台中": "台中是台湾中部经济文化中心，气候温和，近年来文创/艺文产业活跃",
+    "纽约": "纽约是世界级金融中心与多元文化大熔炉，华尔街在此，职场节奏快压力大，亚裔社区庞大",
+    "洛杉矶": "洛杉矶是娱乐产业之都（好莱坞）与西岸经济重镇，气候宜人，科技/影视/贸易产业发达",
+    "旧金山": "旧金山是硅谷所在地，全球科技创新发源地，科技从业者密度极高，生活成本贵但机会也多",
+    "西雅图": "西雅图是亚马逊/星巴克等巨头总部所在，云计算/航空产业领先，四季湿润，科技人聚居",
+    "波士顿": "波士顿是美国教育之都（哈佛/MIT），生物科技与医疗产业发达，学术氛围浓厚",
+    "芝加哥": "芝加哥是美国中西部经济中心与大湖区枢纽，金融/期货/制造业历史悠久",
+    "温哥华": "温哥华是加拿大西岸最大城市，华人社区规模可观，气候温和宜居，以影视/科技/贸易为支柱",
+    "多伦多": "多伦多是加拿大最大城市与金融中心，多元文化融合，银行业/科技/房地产活跃，华人聚集",
+    "东京": "东京是世界级大都市与东亚经济中心，职场文化严谨，服务业/科技/金融发达",
+    "首尔": "首尔是韩国首都与韩流文化中心，科技/娱乐/半导体产业领先，职场竞争激烈",
+    "悉尼": "悉尼是澳大利亚最大城市与南太平洋金融中心，气候宜人，服务业/金融/旅游为支柱",
+    "墨尔本": "墨尔本是澳大利亚文化之都与南半球教育重镇，连续多年全球最宜居城市",
+    "奥克兰": "奥克兰是新西兰最大城市与南太平洋交通枢纽，气候温和，以农业/旅游/教育产业为经济基础",
+    "伦敦": "伦敦是全球金融中心与欧洲文化之都，金融/法律/艺术教育产业密集，快节奏大都市",
+    "巴黎": "巴黎是法国首都与欧洲艺术时尚之都，奢侈品/旅游/餐饮产业发达，文化底蕴极其深厚",
+    "阿姆斯特丹": "阿姆斯特丹是荷兰首都与欧洲金融/创新枢纽，以金融科技/生物科技/创意产业闻名",
+    "迪拜": "迪拜是阿联酋商业与旅游中心，中东金融与物流枢纽，外籍人口远多于本地人，免税财富聚集",
+    "开普敦": "开普敦是南非立法首都与非洲主要港口城市，旅游业和金融业发达，自然风光壮丽",
+}
+
+def get_city_context(city: str) -> str:
+    """根据城市生成定向解读上下文"""
+    if not city:
+        return ""
+    profile = CITY_PROFILES.get(city, "该城市以多元经济和服务业为主")
+    return (f"\n\n📍【城市定向分析 — {city}】"
+            f"用户目前在【{city}】生活/工作。{profile}。"
+            f"请解读时必须结合该城市特点进行分析（产业/气候/文化），让读者感受到这是针对{city}的专属解读，而非通用模板。")
+
+
+# ─── routes ─────────────────────────────────────────────────
+# ─── 免费试用追踪 ──────────────────────────────────────────────
+_FREE_IPS: set = set()
+
+
+@app.get("/shop.html")
+async def serve_shop():
+    p = static_dir / "shop.html"
+    if p.exists(): return HTMLResponse(p.read_text(encoding="utf-8"))
+    return HTMLResponse("Not found", status_code=404)
+
+@app.get("/about.html")
+async def serve_about():
+    p = static_dir / "about.html"
+    if p.exists(): return HTMLResponse(p.read_text(encoding="utf-8"))
+    return HTMLResponse("Not found", status_code=404)
+
+@app.get("/api-docs.html")
+async def serve_api_docs():
+    p = static_dir / "api-docs.html"
+    if p.exists(): return HTMLResponse(p.read_text(encoding="utf-8"))
+    return HTMLResponse("Not found", status_code=404)
+
+@app.get("/health")
+def root():
+    return {"name": "紫微斗数 API", "version": "1.0.0", "docs": "/docs"}
+
+# ─── 免费体验端点 ──────────────────────────────────────────────
+@app.post("/v1/paipan-free")
+def paipan_free(req: PaiPanRequest, request: Request):
+    """免费排盘demo — 无需Key，每人限1次，完整命盘+截取AI解读"""
+    ip = request.client.host if request.client else "unknown"
+    if ip in _FREE_IPS:
+        return {"success": True, "data": {"chart": None, "reading": "<div style='text-align:center;padding:10px 0'><div style='font-size:32px;margin-bottom:8px'>🔮</div><div style='color:#e0c8ff;font-size:16px;font-weight:600;margin-bottom:6px'>免费体验已用完</div><div style='color:#6a5a8a;font-size:13px;margin-bottom:14px'>解锁无限次AI解读 · 不限次数</div><a href='/shop.html' target='_blank' style='display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#7b68ee,#5a4acd);color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:1px'>🛒 购买Key解锁完整解读</a></div>", "free_used": True}}
+    try:
+        chart = run_engine(req.year, req.month, req.day, req.hour, req.gender)
+        if not chart.get("success"):
+            return {"success": False, "error": "排盘失败"}
+        reading = ""
+        if client:
+            try:
+                prompt = load_style_prompt(req.style)
+                chart_json = json.dumps(chart, ensure_ascii=False, indent=2)
+                city_ctx = get_city_context(req.city)
+                resp = client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": f"请解读以下紫微斗数命盘（只需输出前半段精华）：\n\n{chart_json}{city_ctx}"},
+                    ],
+                    temperature=0.7, max_tokens=500, timeout=15,
+                )
+                full = resp.choices[0].message.content or ""
+                reading = full[:200] + ("..." if len(full) > 200 else "")
+                reading += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(123,104,238,.2);text-align:center"><div style="font-size:12px;color:#6a5a8a;margin-bottom:10px">🔒 以上为免费预览（200字）</div><a href="/shop.html" target="_blank" style="display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#7b68ee,#5a4acd);color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:1px">🛒 购买Key解锁完整解读</a></div>'
+            except:
+                reading = "AI解读暂时不可用"
+        _FREE_IPS.add(ip)
+        return {"success": True, "data": {"chart": chart, "reading": reading, "free_used": False}}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+# ─── 推荐奖励 ──────────────────────────────────────────────────
+@app.get("/v1/referral/bonus")
+def referral_bonus(key: str = Depends(get_api_key)):
+    """查询当前Key的推荐奖励额度"""
+    return {"success": True, "bonus": 0, "message": "推荐好友购买可获10%返利（即将上线）"}
+
+@app.post("/v1/referral/link")
+def referral_link(key: str = Depends(get_api_key)):
+    """生成推荐链接"""
+    ref_code = key[:8]  # 取key前缀作为推荐码
+    return {"success": True, "link": f"/shop.html?ref={ref_code}"}
+
+# ─── 统计 ──────────────────────────────────────────────────────
+@app.get("/v1/stats")
+def public_stats():
+    """公开统计 — 展示项目使用数据（信任背书用）"""
+    total_keys = db_conn.execute("SELECT COUNT(*) FROM api_keys").fetchone()[0]
+    total_usage = db_conn.execute("SELECT COUNT(*) FROM usage_log").fetchone()[0]
+    return {"success": True, "data": {"total_keys": total_keys, "total_calls": total_usage, "已服务人次": total_usage}}
+
+@app.post("/v1/paipan", response_model=PaiPanResponse)
+def paipan(req: PaiPanRequest, key: str = Depends(get_api_key)):
+    """排盘 + AI 解读"""
+    try:
+        # 1. 排盘
+        chart = run_engine(req.year, req.month, req.day, req.hour, req.gender)
+        if not chart.get("success"):
+            return PaiPanResponse(success=False, error="排盘失败")
+
+        # 2. AI 解读
+        reading = ""
+        if client:
+            try:
+                prompt = load_style_prompt(req.style)
+                chart_json = json.dumps(chart, ensure_ascii=False, indent=2)
+                city_ctx = get_city_context(req.city)
+                resp = client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": f"请解读以下紫微斗数命盘：\n\n{chart_json}{city_ctx}"},
+                    ],
+                    temperature=0.7,
+                    max_tokens=2000,
+                    timeout=15,
+                )
+                reading = resp.choices[0].message.content or ""
+                # token tracking
+                in_tok = resp.usage.prompt_tokens if resp.usage else 0
+                out_tok = resp.usage.completion_tokens if resp.usage else 0
+                # cost: 每500 tokens = 1分
+                cost = max(1, (in_tok + out_tok) // 1000)
+                log_usage(key, "paipan", cost, in_tok, out_tok)
+                deduct_balance(key, cost)
+            except Exception as e:
+                reading = f"[AI解读暂时不可用: {str(e)}]"
+                cost = 1
+                log_usage(key, "paipan", cost)
+                deduct_balance(key, cost)
+        else:
+            log_usage(key, "paipan", 1)
+            deduct_balance(key, 1)
+
+        return PaiPanResponse(success=True, data={
+            "chart": chart,
+            "reading": reading,
+        })
+
+    except Exception as e:
+        return PaiPanResponse(success=False, error=str(e))
+
+@app.post("/v1/paipan-only", response_model=PaiPanResponse)
+def paipan_only(req: PaiPanRequest, key: str = Depends(get_api_key)):
+    """仅排盘，不调用 AI"""
+    try:
+        chart = run_engine(req.year, req.month, req.day, req.hour, req.gender)
+        if not chart.get("success"):
+            return PaiPanResponse(success=False, error="排盘失败")
+        log_usage(key, "paipan-only", 1)
+        deduct_balance(key, 1)
+        return PaiPanResponse(success=True, data={"chart": chart})
+    except Exception as e:
+        return PaiPanResponse(success=False, error=str(e))
+
+# ─── 每日运势 ────────────────────────────────────────────────
+
+def load_daily_prompt(style: str) -> str:
+    prompts = {
+        "modern": """你是一个环境心理学与色彩艺术分析师。用户提供了自己的紫微斗数命盘，请结合**今天的日期（流日）**，给出基于用户本命盘的个性化每日提示。
+
+分析框架：
+1. **今日能量主题** — 结合用户命宫主星特性 + 今日流日干支，今天什么方面的能量最突出
+2. **今日宜/忌** — 基于用户命盘流日四化引动，给出具体行动建议
+3. **幸运色** — 基于色彩心理学 + 今日五行补益，推荐 2-3 个颜色
+4. **关注宫位** — 今天哪个宫位能量被引动（财帛？官禄？人际？），对应现实生活建议
+5. **空间小提示** — 环境艺术角度的今日家居/办公调整
+
+⚠️ 只从环境心理学、色彩心理学、自然节律角度表达。不说"算命""占卜"。用词轻松实用。总字数 300 字以内。""",
+
+        "classical": """你是精通紫微斗数与黄历择日的传统命师。用户提供了自己的命盘，请结合流日给出古典风格的每日运势。
+
+分析框架：
+1. **今日神煞** — 流日与命宫的冲合关系，指出今日吉神/凶煞
+2. **十二宫引动** — 哪一宫被流日四化引动，吉凶如何
+3. **宜忌** — 参照黄历今日冲合，结合用户命盘给出具体宜忌（如：利求财、忌远行）
+4. **五行调候** — 今日五行之气偏向何处，用户如何补益
+5. **择时提示** — 今日哪个时辰对用户最利
+
+⚠️ 用传统命理断语风格，半文言表达。结尾注明"仅供娱乐参考"。总字数 300 字以内。""",
+
+        "poetic": """你是治愈系能量指引师，以诗意温暖的语言为用户传递每日能量。
+
+分析框架：
+1. **清晨的一句诗** — 一句温暖的短诗开场，贴合今日能量氛围
+2. **今日的你的样子** — 从命盘角度描绘用户今天可能的状态（温柔/坚定/安静等）
+3. **一个小仪式** — 今日可做的微小治愈动作（泡一杯茶、午间散步等）
+4. **今日箴言** — 一句送给用户的短句祝福
+
+⚠️ 语言优美温暖，多用比喻和画面感表达。每段3-5句。结尾注明"仅供娱乐参考"。总字数 300 字以内。""",
+    }
+    return prompts.get(style, prompts["modern"])
+
+class DailyRequest(BaseModel):
+    year: int = Field(..., ge=1900, le=2100)
+    month: int = Field(..., ge=1, le=12)
+    day: int = Field(..., ge=1, le=31)
+    hour: float = Field(..., ge=0, le=23)
+    gender: str = Field(..., pattern="^(male|female)$")
+    style: str = Field("modern", pattern="^(modern|classical|poetic)$")
+    city: str = Field("", max_length=100, description="所在城市")
+
+class DailyResponse(BaseModel):
+    success: bool
+    data: Optional[dict] = None
+    error: Optional[str] = None
+
+@app.post("/v1/daily", response_model=DailyResponse)
+def daily_fortune(req: DailyRequest, key: str = Depends(get_api_key)):
+    """每日运势 — 基于命盘+流日"""
+    try:
+        today = date.today()
+        
+        # 1. 获取用户命盘
+        chart = run_engine(req.year, req.month, req.day, req.hour, req.gender)
+        if not chart.get("success"):
+            return DailyResponse(success=False, error="排盘失败")
+        
+        # 2. 获取今日流日信息
+        lunar_req = jmod.dumps({"year": today.year, "month": today.month, "day": today.day, "hour": 12, "gender": "male"})
+        proc = subprocess.run(
+            [_NODE, str(ENGINE_PATH)],
+            input=lunar_req, capture_output=True, text=True, timeout=10, cwd=str(BASE_DIR),
+        )
+        today_chart = {}
+        if proc.returncode == 0:
+            today_chart = jmod.loads(proc.stdout)
+        
+        today_info = today_chart.get("基本信息", {})
+        context = {
+            "日期": f"{today.year}年{today.month}月{today.day}日",
+            "农历": today_info.get("农历", ""),
+            "干支": today_info.get("八字", "").split(" ")[0] if today_info.get("八字") else "",
+            "星期": "日一二三四五六"[today.weekday()],
+        }
+        city_ctx = get_city_context(req.city)
+
+        # 3. AI 解读
+        reading = ""
+        if client:
+            try:
+                chart_json = jmod.dumps({
+                    "基本资料": chart.get("基本信息"),
+                    "命盘": chart.get("命盘"),
+                    "大限": chart.get("大限"),
+                }, ensure_ascii=False, indent=2)
+                prompt = load_daily_prompt(req.style)
+                resp = client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": f"我的命盘：\n{chart_json}\n\n今天的日期：{context['日期']}（{context['星期']}）\n农历：{context['农历']}\n流日干支：{context['干支']}\n{city_ctx}\n请基于我的命盘分析今天的运势。"},
+                    ],
+                    temperature=0.7,
+                    max_tokens=800,
+                    timeout=15,
+                )
+                reading = resp.choices[0].message.content or ""
+                in_tok = resp.usage.prompt_tokens if resp.usage else 0
+                out_tok = resp.usage.completion_tokens if resp.usage else 0
+                cost = max(1, (in_tok + out_tok) // 1000)
+                log_usage(key, "daily", cost, in_tok, out_tok)
+                deduct_balance(key, cost)
+            except Exception as e:
+                reading = f"[AI 暂时不可用: {str(e)}]"
+                log_usage(key, "daily", 1)
+                deduct_balance(key, 1)
+        else:
+            reading = "AI 未配置，请设置 DEEPSEEK_API_KEY"
+            log_usage(key, "daily", 1)
+            deduct_balance(key, 1)
+
+        return DailyResponse(success=True, data={
+            "context": context,
+            "reading": reading,
+        })
+
+    except Exception as e:
+        return DailyResponse(success=False, error=str(e))
+
+# ─── 当前大限分析 ────────────────────────────────────────────
+
+class DaXianRequest(BaseModel):
+    year: int = Field(..., ge=1900, le=2100)
+    month: int = Field(..., ge=1, le=12)
+    day: int = Field(..., ge=1, le=31)
+    hour: float = Field(..., ge=0, le=23)
+    gender: str = Field(..., pattern="^(male|female)$")
+    style: str = Field("modern", pattern="^(modern|classical|poetic)$")
+    city: str = Field("", max_length=100, description="所在城市")
+
+class DaXianResponse(BaseModel):
+    success: bool
+    data: Optional[dict] = None
+    error: Optional[str] = None
+
+# 星曜吉凶分类
+JI_STARS = {'紫微','天府','天相','天梁','太阳','太阴','天同','武曲','左辅','右弼','文昌','文曲','天魁','天钺','禄存'}
+SHA_STARS = {'七杀','破军','擎羊','陀罗'}
+
+@app.post("/v1/daxian", response_model=DaXianResponse)
+def daxian_analysis(req: DaXianRequest, key: str = Depends(get_api_key)):
+    """当前十年大限详细分析"""
+
+
+# ─── 大限分析（续） ────────────────────────────────────────────
+    try:
+        today = date.today()
+        chart = run_engine(req.year, req.month, req.day, req.hour, req.gender)
+        if not chart.get("success"):
+            return DaXianResponse(success=False, error="排盘失败")
+        
+        current_age = today.year - req.year
+        if today.month < req.month or (today.month == req.month and today.day < req.day):
+            current_age -= 1
+        
+        current_daxian = None
+        for dx in chart.get("大限", []):
+            ages = dx["年龄"].replace("岁","").split("~")
+            start = int(ages[0]); end = int(ages[1])
+            if start <= current_age <= end:
+                dx["起始年龄"] = start; dx["当前年龄"] = current_age
+                current_daxian = dx; break
+        
+        if not current_daxian:
+            return DaXianResponse(success=False, error="无法确定当前大限")
+        
+        palace_name = current_daxian["大限"]
+        palace = chart.get("命盘", {}).get(palace_name, {})
+        main_stars = palace.get("主星", []); minor_stars = palace.get("辅星", [])
+        hua = palace.get("四化", [])
+        
+        ji_list = [s for s in main_stars + minor_stars if s in JI_STARS] + [h for h in hua if h in ('化禄','化权','化科')]
+        sha_list = [s for s in main_stars + minor_stars if s in SHA_STARS] + [h for h in hua if h == '化忌']
+        zhong_list = [s for s in main_stars + minor_stars if s not in JI_STARS and s not in SHA_STARS]
+        
+        DI_ZHI_LIST = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥']
+        daxian_detail = {
+            "当前年龄": current_age, "当前大限": palace_name,
+            "大限年龄范围": current_daxian["年龄"],
+            "宫位地支": DI_ZHI_LIST[palace.get("地支", 0)],
+            "主星": main_stars, "辅星": minor_stars, "四化": hua,
+            "吉星": ji_list, "煞星": sha_list, "中性星": zhong_list,
+            "吉凶评价": "大吉" if len(ji_list) >= 2 and len(sha_list) == 0 else \
+                       "吉" if len(ji_list) > len(sha_list) else \
+                       "平" if len(ji_list) == len(sha_list) else \
+                       "凶" if len(sha_list) > len(ji_list) else "平"
+        }
+        
+        reading = ""
+        if client:
+            try:
+                prompt = load_daxian_prompt(req.style)
+                city_ctx = get_city_context(req.city)
+                chart_data = {"基本资料": chart.get("基本信息"), "当前大限详情": daxian_detail}
+                cj = jmod.dumps(chart_data, ensure_ascii=False, indent=2)
+                resp = client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": f"我的命盘和当前所处大限：\n{cj}\n\n请详细分析我当前十年大限的格局，包括主星辅星吉凶星的相互作用，以及这十年的人生建议。{city_ctx}"}
+                    ],
+                    temperature=0.7, max_tokens=800, timeout=15,
+                )
+                reading = resp.choices[0].message.content or ""
+                in_tok = resp.usage.prompt_tokens if resp.usage else 0
+                out_tok = resp.usage.completion_tokens if resp.usage else 0
+                cost = max(1, (in_tok + out_tok) // 1000)
+                log_usage(key, "daxian", cost, in_tok, out_tok)
+                deduct_balance(key, cost)
+            except:
+                reading = "[AI暂时不可用: ...]"
+                log_usage(key, "daxian", 1)
+                deduct_balance(key, 1)
+        else:
+            log_usage(key, "daxian", 1)
+            deduct_balance(key, 1)
+        
+        return DaXianResponse(success=True, data={"daxian": daxian_detail, "reading": reading})
+    except Exception as e:
+        return DaXianResponse(success=False, error=str(e))
+
+# ─── 免费大限端点 ──────────────────────────────────────────────
+_DAXIAN_FREE_LIMIT: set = set()
+DI_ZHI_LIST = ['子','丑','寅','卯','巳','午','未','申','酉','戌','亥']
+
+@app.post("/v1/daxian-free")
+def daxian_free(req: DaXianRequest, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    if ip in _DAXIAN_FREE_LIMIT:
+        return {"success": True, "data": {"daxian": None, "reading": '<div style="text-align:center;padding:10px 0"><div style="font-size:32px;margin-bottom:8px">⏳</div><div style="color:#e0c8ff;font-size:16px;font-weight:600;margin-bottom:6px">免费大限分析已使用</div><div style="color:#6a5a8a;font-size:13px;margin-bottom:14px">解锁无限次大限详解</div><a href="/shop.html" target="_blank" style="display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#7b68ee,#5a4acd);color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:1px">🛒 购买Key解锁</a></div>', "free_used": True}}
+    try:
+        today = date.today()
+        chart = run_engine(req.year, req.month, req.day, req.hour, req.gender)
+        if not chart.get("success"):
+            return {"success": False, "error": "排盘失败"}
+        current_age = today.year - req.year
+        if today.month < req.month or (today.month == req.month and today.day < req.day):
+            current_age -= 1
+        current_daxian = None
+        for dx in chart.get("大限", []):
+            ages = dx["年龄"].replace("岁","").split("~")
+            if int(ages[0]) <= current_age <= int(ages[1]):
+                dx["当前年龄"] = current_age; current_daxian = dx; break
+        if not current_daxian:
+            return {"success": False, "error": "无法确定当前大限"}
+        pn = current_daxian["大限"]; p = chart.get("命盘",{}).get(pn,{})
+        j = [s for s in p.get("主星",[])+p.get("辅星",[]) if s in JI_STARS]+[h for h in p.get("四化",[]) if h in ('化禄','化权','化科')]
+        sh = [s for s in p.get("主星",[])+p.get("辅星",[]) if s in SHA_STARS]+[h for h in p.get("四化",[]) if h=='化忌']
+        z = [s for s in p.get("主星",[])+p.get("辅星",[]) if s not in JI_STARS and s not in SHA_STARS]
+        dd = {"当前年龄":current_age,"当前大限":pn,"大限年龄范围":current_daxian["年龄"],
+              "宫位地支":DI_ZHI_LIST[p.get("地支",0)],"主星":p.get("主星",[]),
+              "辅星":p.get("辅星",[]),"四化":p.get("四化",[]),"吉星":j,"煞星":sh,
+              "中性星":z,"吉凶评价":"大吉"if len(j)>=2 and len(sh)==0 else "吉"if len(j)>len(sh) else "平"if len(j)==len(sh) else "凶"}
+        reading = ""
+        if client:
+            try:
+                city_ctx = get_city_context(req.city)
+                prompt = load_daxian_prompt(req.style)
+                cj = jmod.dumps({"基本资料":chart.get("基本信息"),"当前大限详情":dd},ensure_ascii=False,indent=2)
+                resp = client.chat.completions.create(model="deepseek-chat",messages=[
+                    {"role":"system","content":prompt},
+                    {"role":"user","content":f"我的命盘大限信息：\n{cj}{city_ctx}\n\n请给出前200字精华预览。"}
+                ],temperature=0.7,max_tokens=400,timeout=15)
+                full = resp.choices[0].message.content or ""
+                reading = full[:200]+("..." if len(full)>200 else "")+'<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,200,80,.15);text-align:center"><div style="font-size:12px;color:#8a7a5a;margin-bottom:10px">🔒 免费预览（200字）· 仅限1次</div><a href="/shop.html" target="_blank" style="display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#7b68ee,#5a4acd);color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:1px">🛒 购买Key解锁完整大限解读</a></div>'
+            except: reading = "AI解读暂时不可用"
+        _DAXIAN_FREE_LIMIT.add(ip)
+        return {"success":True,"data":{"daxian":dd,"reading":reading,"free_used":False}}
+    except Exception as e:
+        return {"success":False,"error":str(e)}
+
+# ─── 大限Prompt ──────────────────────────────────────────────
+def load_daxian_prompt(style: str) -> str:
+    prompts = {
+        "modern": """你是一个精通紫微斗数的命理咨询师，以专业但温和的语气为用户分析当前的十年大运。
+
+分析框架：
+1. **大限宫位解读** — 当前大限落在什么宫位，该宫位是用户这十年的人生主战场
+2. **主星特质** — 该宫主星在这十年中如何发挥影响力
+3. **辅星加成** — 吉辅/煞辅的能量叠加效果
+4. **四化引动** — 化禄/化权/化科/化忌在本大限中的作用
+5. **人生建议** — 针对当前大限的具体建议（事业/财运/感情/健康）
+
+注意：说人话，分析具体。注明"仅供娱乐参考"。""",
+        "classical": """你是传统紫微斗数命师，以半文言分析十年大限。
+1. 论大限宫垣星曜之组合 2. 断四化引动之吉凶 3. 给出趋吉避凶之建议
+结尾注明"仅供娱乐参考"。""",
+        "poetic": """你是治愈系命理师，以诗意温暖的语言解读十年大限。
+每段3-5句，语言优美，侧重人生阶段建议。传递温暖正向力量。
+结尾注明"仅供娱乐参考"。"""
+    }
+    return prompts.get(style, prompts["modern"])
+
+# ─── 免费每日运势 ──────────────────────────────────────────────
+_DAILY_FREE_LIMIT: dict = {}
+
+@app.post("/v1/daily-free")
+def daily_free(req: DailyRequest, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    today_str = date.today().isoformat()
+    key = f"{ip}:{today_str}"
+    if key in _DAILY_FREE_LIMIT:
+        return {"success": True, "data": {"free_used": True, "context": {}, "reading": '<div style="text-align:center;padding:10px 0"><div style="font-size:32px;margin-bottom:8px">🌅</div><div style="color:#e0c8ff;font-size:16px;font-weight:600;margin-bottom:6px">今日免费运势已使用</div><div style="color:#6a5a8a;font-size:13px;margin-bottom:14px">解锁无限次每日运势</div><a href="/shop.html" target="_blank" style="display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#2a8a5a,#1a6a40);color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:1px">🛒 购买Key解锁</a></div>'}}
+    _DAILY_FREE_LIMIT[key] = True
+    try:
+        today = date.today()
+        chart = run_engine(req.year, req.month, req.day, req.hour, req.gender)
+        today_chart = {}
+        if chart.get("success"):
+            lr = jmod.dumps({"year":today.year,"month":today.month,"day":today.day,"hour":12,"gender":"male"})
+            proc = subprocess.run([_NODE,str(ENGINE_PATH)],input=lr,capture_output=True,text=True,timeout=10,cwd=str(BASE_DIR))
+            if proc.returncode==0: today_chart=jmod.loads(proc.stdout)
+        ti = today_chart.get("基本信息",{})
+        ctx = {"日期":f"{today.year}年{today.month}月{today.day}日","农历":ti.get("农历",""),"干支":ti.get("八字","").split(" ")[0] if ti.get("八字") else "","星期":"日一二三四五六"[today.weekday()]}
+        reading = ""
+        if client:
+            try:
+                city_ctx = get_city_context(req.city)
+                cj = jmod.dumps({"基本资料":chart.get("基本信息"),"命盘":chart.get("命盘"),"大限":chart.get("大限")},ensure_ascii=False,indent=2)
+                prompt = load_daily_prompt(req.style)
+                resp = client.chat.completions.create(model="deepseek-chat",messages=[
+                    {"role":"system","content":prompt},
+                    {"role":"user","content":f"我的命盘：\n{cj}\n\n今天的日期：{ctx['日期']}（{ctx['星期']}）\n农历：{ctx['农历']}\n流日干支：{ctx['干支']}\n{city_ctx}\n请给出今日运势分析（前200字精华预览）。"}
+                ],temperature=0.7,max_tokens=400,timeout=15)
+                full=resp.choices[0].message.content or ""
+                reading=full[:200]+("..." if len(full)>200 else "")+'<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(100,255,180,.15);text-align:center"><div style="font-size:12px;color:#5a9a7a;margin-bottom:10px">🔒 免费预览（200字）· 每日仅限1次</div><a href="/shop.html" target="_blank" style="display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#2a8a5a,#1a6a40);color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;letter-spacing:1px">🛒 购买Key解锁完整运势</a></div>'
+            except: reading="AI解读暂时不可用"
+        return {"success":True,"data":{"context":ctx,"reading":reading,"free_used":False}}
+    except Exception as e:
+        return {"success":False,"error":str(e)}
+
+# ─── 商店接口 ────────────────────────────────────────────────
+PACKAGES = {
+    "trial":{"name":"体验包","price":9.9,"quota":3,"color":"#88bbff"},
+    "starter":{"name":"入门包","price":49,"quota":10,"color":"#88dd88"},
+    "pro":{"name":"进阶包","price":199,"quota":100,"color":"#ffcc44"},
+    "enterprise":{"name":"专业包","price":499,"quota":500,"color":"#ff6688"},
+}
+OVERSEAS_PACKAGES = {
+    "starter":{"name":"Starter","price":9.9,"quota":10,"currency":"USD"},
+    "standard":{"name":"Standard","price":29.9,"quota":50,"currency":"USD"},
+    "annual":{"name":"Annual","price":99,"quota":500,"currency":"USD"},
+    "business":{"name":"Business","price":49,"quota":2000,"currency":"USD","monthly":True},
+    "whitelabel":{"name":"WhiteLabel","price":999,"quota":99999,"currency":"USD","monthly":True},
+}
+
+@app.get("/v1/packages")
+def get_packages():
+    return {"success":True,"data":{"cn":PACKAGES,"overseas":OVERSEAS_PACKAGES}}
+
+@app.post("/v1/key/create")
+def create_key(req: KeyCreateRequest):
+    key = "zw_" + secrets.token_hex(16)
+    db_conn.execute("INSERT INTO api_keys (key, name, balance) VALUES (?, ?, ?)",(key,req.name,req.quota))
+    db_conn.commit()
+    return {"success":True,"data":{"key":key,"balance":req.quota}}
+
+@app.post("/v1/order/create")
+def create_order(package: str, pay_method: str = "alipay"):
+    if package not in PACKAGES: raise HTTPException(400,"Invalid package")
+    pkg = PACKAGES[package]
+    order_id = f"ORD{datetime.now().strftime('%Y%m%d%H%M%S')}{secrets.token_hex(4)}"
+    db_conn.execute("INSERT INTO orders (id, package, amount, pay_method) VALUES (?,?,?,?)",(order_id,package,pkg["price"],pay_method))
+    db_conn.commit()
+    return {"success":True,"data":{"order_id":order_id,"amount":pkg["price"],"package":package,"package_name":pkg["name"]}}
+
+@app.post("/v1/order/pay")
+def pay_order(order_id: str):
+    order = db_conn.execute("SELECT * FROM orders WHERE id=?",(order_id,)).fetchone()
+    if not order: raise HTTPException(404,"Order not found")
+    if order[5] != "pending": raise HTTPException(400,"Order already paid/cancelled")
+    package = order[2]; pkg = PACKAGES.get(package)
+    if not pkg: raise HTTPException(400,"Invalid package")
+    key = "zw_" + secrets.token_hex(16)
+    db_conn.execute("INSERT INTO api_keys (key, name, balance) VALUES (?,?,?)",(key,f"自动创建-{pkg['name']}",pkg["quota"]))
+    db_conn.execute("UPDATE orders SET status='paid', api_key=?, paid_at=datetime('now') WHERE id=?",(key,order_id))
+    db_conn.commit()
+    return {"success":True,"data":{"key":key,"quota":pkg["quota"],"package":pkg["name"]}}
+
+@app.get("/v1/key/balance")
+def check_balance(key: str = Depends(get_api_key)):
+    row = db_conn.execute("SELECT balance FROM api_keys WHERE key=?",(key,)).fetchone()
+    return {"success":True,"balance":row[0] if row else 0}
+
+@app.get("/v1/usage")
+def check_usage(key: str = Depends(get_api_key), limit: int = 20):
+    rows = db_conn.execute("SELECT endpoint, cost, created_at FROM usage_log WHERE api_key=? ORDER BY created_at DESC LIMIT ?",(key,limit)).fetchall()
+    return {"success":True,"data":[{"endpoint":r[0],"cost":r[1],"time":r[2]} for r in rows]}
+
+@app.get("/v1/redeem")
+def redeem(code: str):
+    REDEEM_CODES = {"TEST10":10,"VIP50":50}
+    quota = REDEEM_CODES.get(code)
+    if not quota: raise HTTPException(400,"Invalid code")
+    return {"success":True,"data":{"code":code,"quota":quota}}
+
+# ─── entry ───────────────────────────────────────────────────
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("api.main:app", host="0.0.0.0", port=8119, reload=True)
+
