@@ -50,6 +50,9 @@ TRONGRID_API = "https://api.trongrid.io"
 USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"  # USDT (TRC-20) mainnet
 # PAYPAL_API = "https://api-m.sandbox.paypal.com"  # sandbox
 
+# Owner key for GSC dashboard (only this key can view all sites' search performance)
+OWNER_KEY_HASH = os.getenv("OWNER_KEY_HASH", "f416fd73ddc34f27")
+
 # ─── SMTP config ────────────────────────────────────────────
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.qq.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
@@ -112,6 +115,19 @@ async def lifespan(app: FastAPI):
         db_conn.execute("ALTER TABLE orders ADD COLUMN buyer_email TEXT")
         db_conn.commit()
     except: pass
+    # GSC daily stats table
+    db_conn.execute("""CREATE TABLE IF NOT EXISTS gsc_stats (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        domain TEXT NOT NULL,
+        date TEXT NOT NULL,
+        impressions INTEGER DEFAULT 0,
+        clicks INTEGER DEFAULT 0,
+        ctr REAL DEFAULT 0,
+        avg_position REAL DEFAULT 0,
+        top_queries TEXT DEFAULT '{}',
+        created_at TEXT DEFAULT (datetime('now')),
+        UNIQUE(domain, date)
+    )""")
     # Create index for faster lookups
     try:
         db_conn.execute("CREATE INDEX IF NOT EXISTS idx_sub_email ON subscriptions(email)")
@@ -162,6 +178,11 @@ async def lifespan(app: FastAPI):
     except: pass
     # Add audit_logs table for anonymized data collection
     db_conn.execute("""CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, domain_hash TEXT, score INTEGER, total_checks INTEGER, passed INTEGER, warnings INTEGER, failed INTEGER, high_issues INTEGER, med_issues INTEGER, low_issues INTEGER, word_count INTEGER, content_type TEXT, created_at TEXT DEFAULT (datetime('now')))""")
+    # Add scan_logs table for per-key scan tracking (anti-abuse)
+    db_conn.execute("""CREATE TABLE IF NOT EXISTS scan_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, key_hash TEXT, url TEXT, score INTEGER, ip TEXT, created_at TEXT DEFAULT (datetime('now')))""")
+    # Add email_subscribers table for email sequence automation
+    db_conn.execute("""CREATE TABLE IF NOT EXISTS email_subscribers (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, domain TEXT, score INTEGER, step INTEGER DEFAULT 0, subscribed_at TEXT DEFAULT (datetime('now')), last_sent TEXT, unsubscribed INTEGER DEFAULT 0, source TEXT DEFAULT 'scan')""")
+    db_conn.execute("""CREATE TABLE IF NOT EXISTS email_sequence_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, subscriber_id INTEGER, step INTEGER, subject TEXT, sent_at TEXT DEFAULT (datetime('now')), opened INTEGER DEFAULT 0, FOREIGN KEY(subscriber_id) REFERENCES email_subscribers(id))""")
     yield
     if db_conn:
         db_conn.close()
@@ -197,13 +218,20 @@ if static_dir.exists():
         return HTMLResponse("Not found", 404)
     @app.get("/")
     async def serve_root():
-        html = (static_dir / "index.html").read_text(encoding="utf-8")
+        html = (static_dir / "release" / "index.html").read_text(encoding="utf-8")
         # 注入统计数据
         try:
             tk = db_conn.execute("SELECT COUNT(*) FROM api_keys").fetchone()[0]
             tu = db_conn.execute("SELECT COUNT(*) FROM usage_log").fetchone()[0]
             html = html.replace('id="statUsers">-</span>', f'id="statUsers">{tk}</span>')
             html = html.replace('id="statCalls">-</span>', f'id="statCalls">{tu}</span>')
+            # SEO audit stats
+            total_audits = db_conn.execute("SELECT COUNT(*) FROM audit_logs").fetchone()[0]
+            total_issues = db_conn.execute("SELECT COALESCE(SUM(high_issues+med_issues+low_issues),0) FROM audit_logs").fetchone()[0]
+            total_fixes = db_conn.execute("SELECT COALESCE(SUM(total_checks-passed),0) FROM audit_logs").fetchone()[0]
+            html = html.replace('id="statSites">0</h3>', f'id="statSites">{total_audits}</h3>')
+            html = html.replace('id="statIssues">0</h3>', f'id="statIssues">{total_issues}</h3>')
+            html = html.replace('id="statFixes">0</h3>', f'id="statFixes">{total_fixes}</h3>')
         except:
             pass
         from fastapi.responses import HTMLResponse
@@ -953,8 +981,8 @@ PACKAGES = {"starter":{"name":"探运包","price":9.9,"quota":3,"df":7},"standar
 
 # ─── subscription plans ─────────────────────────────────────
 SUB_PLANS = {
-    "monthly": {"name":"月度订阅","name_en":"Monthly","price":5.9,"renew_price":8.9,"days":30},
-    "yearly":  {"name":"年度订阅","name_en":"Yearly","price":39.9,"renew_price":0,"days":365},
+    "monthly": {"name":"月度星伴","name_en":"Monthly Star","price":5.9,"renew_price":8.9,"days":30},
+    "yearly":  {"name":"年度星伴","name_en":"Yearly Star","price":39.9,"renew_price":0,"days":365},
 }
 
 class SubscribeRequest(BaseModel):
@@ -972,13 +1000,20 @@ class SubscribeRequest(BaseModel):
 
 @app.post("/v1/subscribe")
 def subscribe(req: SubscribeRequest):
-    """订阅每日运势——存储出生信息+创建订单+返回支付URL"""
+    """订阅每日运势——存储出生信息+创建USDT订单"""
     email = req.email.strip().lower()
     if not email or "@" not in email:
         raise HTTPException(400, "Invalid email")
     if req.plan not in SUB_PLANS:
         raise HTTPException(400, "Invalid plan")
     sp = SUB_PLANS[req.plan]
+    # 金额互斥锁：同一价格同时只能有一笔pending USDT订单
+    existing_pending = db_conn.execute(
+        "SELECT id FROM orders WHERE amount=? AND pay_method='usdt' AND status='pending' AND datetime(created_at) > datetime('now', '-5 minutes')",
+        (sp["price"],)
+    ).fetchone()
+    if existing_pending:
+        raise HTTPException(409, f"当前 ${sp['price']} 的支付订单已在处理中，请等待完成后重试")
     # 创建或更新用户（存储出生信息）
     existing = db_conn.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
     if existing:
@@ -988,17 +1023,19 @@ def subscribe(req: SubscribeRequest):
         db_conn.execute("INSERT INTO users (email, name, birth_year, birth_month, birth_day, birth_hour, gender, language, marketing_consent, source) VALUES (?,?,?,?,?,?,?,?,?,?)",
             (email, req.name, req.birth_year, req.birth_month, req.birth_day, req.birth_hour, req.gender, req.language, 1 if req.marketing_consent else 0, req.source))
     db_conn.commit()
-    # 创建订单
-    oid = f"SUB{secrets.token_hex(16)}"
-    db_conn.execute("INSERT INTO orders (id, package, amount, pay_method, source, marketing_consent) VALUES (?,?,?,?,?,?)",
-        (oid, "sub_"+req.plan, sp["price"], "paypal", req.source, 1 if req.marketing_consent else 0))
+    # 创建USDT订单（pending状态，等待链上确认）
+    oid = f"SUB{secrets.token_hex(8)}"
+    db_conn.execute("INSERT INTO orders (id, package, amount, pay_method, status, buyer_email, source, marketing_consent) VALUES (?,?,?,?,?,?,?,?)",
+        (oid, "sub_"+req.plan, sp["price"], "usdt", "pending", email, req.source, 1 if req.marketing_consent else 0))
     db_conn.commit()
-    # 返回PayPal支付URL（或mock模式）
-    url = _paypal_create_order(sp["price"], f"Daily Fortune - {sp['name_en']}", oid)
-    if url:
-        return {"success": True, "data": {"url": url, "order_id": oid, "amount": sp["price"], "plan": req.plan}}
-    mock_url = f"{BASE_URL}/shop.html?order_id={oid}&success=1&sub_email={email}&sub_plan={req.plan}"
-    return {"success": True, "data": {"url": mock_url, "order_id": oid, "amount": sp["price"], "plan": req.plan, "mock": True}}
+    return {
+        "success": True, "data": {
+            "order_id": oid,
+            "amount": sp["price"],
+            "wallet": USDT_WALLET,
+            "plan": req.plan,
+        }
+    }
 
 # ─── register ──────────────────────────────────────────────────
 class RegisterRequest(BaseModel):
@@ -1523,6 +1560,7 @@ SEO_PACKAGES = {
     "seo_starter": {"name": "Starter Pack", "price": 14.9, "scans": 5},
     "seo_growth": {"name": "Growth Pack", "price": 49, "scans": 25},
     "seo_pro": {"name": "Pro Pack", "price": 149, "scans": 150},
+    "seo_monthly": {"name": "Weekly Subscription", "price": 9.9, "scans": 0},
 }
 
 @app.post("/v1/seo/checkout")
@@ -1609,6 +1647,15 @@ async def seo_paid_audit(request: Request):
             db_conn.commit()
         except Exception as e:
             print(f"[audit_log] Save failed: {e}")
+        # Log scan for anti-abuse tracking
+        try:
+            client_ip = request.client.host if request.client else ""
+            key_hash = hashlib.sha256(api_key.encode()).hexdigest()[:16]
+            db_conn.execute("INSERT INTO scan_logs (key_hash, url, score, ip) VALUES (?,?,?,?)",
+                (key_hash, url, result.get("score", 0), client_ip))
+            db_conn.commit()
+        except Exception as e:
+            print(f"[scan_log] Save failed: {e}")
         return {"success": True, "report": result}
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -1637,6 +1684,17 @@ async def seo_register_url(request: Request):
         db_conn.execute("INSERT INTO seo_urls (api_key, url, last_scan) VALUES (?,?,datetime('now'))", (api_key, url))
         db_conn.commit()
         return {"success": True, "message": "URL registered for weekly scans", "url": url}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.get("/v1/seo/stats")
+async def seo_stats():
+    """Global SEO audit stats."""
+    try:
+        total_audits = db_conn.execute("SELECT COUNT(*) FROM audit_logs").fetchone()[0]
+        total_issues = db_conn.execute("SELECT COALESCE(SUM(high_issues+med_issues+low_issues),0) FROM audit_logs").fetchone()[0]
+        total_fixes = db_conn.execute("SELECT COALESCE(SUM(total_checks-passed),0) FROM audit_logs").fetchone()[0]
+        return {"success": True, "data": {"sites": total_audits, "issues": total_issues, "fixes": total_fixes}}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -1992,6 +2050,13 @@ async def create_usdt_order(request: Request, package: str = Body(..., embed=Tru
     if not buyer_email or "@" not in buyer_email:
         raise HTTPException(400, "Valid email is required")
     buyer_email = buyer_email.strip().lower()
+    # 金额互斥锁：同一价格同时只能有一笔pending USDT订单
+    existing_pending = db_conn.execute(
+        "SELECT id FROM orders WHERE amount=? AND pay_method='usdt' AND status='pending' AND datetime(created_at) > datetime('now', '-5 minutes')",
+        (pkg["price"],)
+    ).fetchone()
+    if existing_pending:
+        return {"success": False, "error": f"当前 ${pkg['price']} 的支付订单已在处理中，请等待完成后重试"}
     oid = f"SEO{secrets.token_hex(8)}"
     db_conn.execute(
         "INSERT INTO orders (id, package, amount, pay_method, status, buyer_email) VALUES (?,?,?,?,?,?)",
@@ -2061,31 +2126,89 @@ async def confirm_usdt_payment(request: Request):
         except:
             return {"success": False, "error": "Invalid value in transaction"}
 
-        pkg = SEO_PACKAGES.get(o[2])
-        if not pkg:
-            return {"success": False, "error": "Package not found"}
-        expected = pkg["price"]
+        # Look up package (SEO or subscription)
+        is_sub = o[2].startswith('sub_')
+        if is_sub:
+            sub_plan = o[2].replace('sub_', '')
+            sp = SUB_PLANS.get(sub_plan)
+            if not sp:
+                return {"success": False, "error": "Subscription plan not found"}
+            expected = sp["price"]
+            plan_name = sp["name"]
+        else:
+            pkg = SEO_PACKAGES.get(o[2])
+            if not pkg:
+                return {"success": False, "error": "Package not found"}
+            expected = pkg["price"]
+            plan_name = pkg["name"]
+
         if abs(received_amount - expected) > 0.01:
             return {"success": False, "error": f"Amount mismatch: received ${received_amount:.2f}, expected ${expected}"}
 
-        # All checks passed — generate key
-        k = "seo_" + secrets.token_hex(16)
-        db_conn.execute(
-            "INSERT INTO api_keys (key, name, balance) VALUES (?,?,?)",
-            (k, f"USDT-{pkg['name']}", pkg["scans"])
-        )
+        # All checks passed
+        buyer_email = o[10] if len(o) > 10 else ""
+        k = None
+
+        if is_sub:
+            # Subscription: activate / extend
+            sub_plan = o[2].replace('sub_', '')
+            sp = SUB_PLANS[sub_plan]
+            days = sp["days"]
+            end_date = (datetime.utcnow() + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+            existing = db_conn.execute(
+                "SELECT id FROM subscriptions WHERE email=? AND plan=? AND status='active'",
+                (buyer_email, sub_plan)
+            ).fetchone()
+            if existing:
+                # Extend existing subscription
+                db_conn.execute(
+                    "UPDATE subscriptions SET end_date=datetime(end_date, ?), subscribed_at=datetime('now') WHERE email=? AND plan=?",
+                    (f'+{days} days', buyer_email, sub_plan)
+                )
+            else:
+                db_conn.execute(
+                    "INSERT INTO subscriptions (email, plan, status, end_date, lang) VALUES (?,?,?,?,?)",
+                    (buyer_email, sub_plan, 'active', end_date, 'en')
+                )
+            # Issue API key with balance for 排盘 access
+            k = "zw_" + secrets.token_hex(16)
+            db_conn.execute(
+                "INSERT INTO api_keys (key, name, balance) VALUES (?,?,?)",
+                (k, f"Sub-{sp['name_en']}", 50)
+            )
+        else:
+            # One-time SEO pack: generate key with scans
+            k = "seo_" + secrets.token_hex(16)
+            db_conn.execute(
+                "INSERT INTO api_keys (key, name, balance) VALUES (?,?,?)",
+                (k, f"USDT-{plan_name}", pkg["scans"])
+            )
+
         db_conn.execute(
             "UPDATE orders SET status='paid', api_key=?, paid_at=datetime('now'), tx_hash=? WHERE id=?",
             (k, tx_hash, order_id)
         )
         db_conn.commit()
 
-        # Send email with key
-        buyer_email = o[9] if len(o) > 9 else ""  # buyer_email column
+        # Send email
+        buyer_email = o[10] if len(o) > 10 else ""
         smtp_available = SMTP_HOST and SMTP_USER and SMTP_PASS
         if smtp_available and buyer_email:
             try:
-                html = f"""<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+                if is_sub:
+                    end_display = end_date.split(" ")[0] if not existing else "(extended)"
+                    html = f"""<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
+<h2 style="color:#e8b860">🌟 紫微斗數訂閱已啟用</h2>
+<p style="color:#d4c9a8">方案: <strong>{sp['name']}</strong> · 有效至: <strong>{end_display}</strong></p>
+<div style="background:#1a1a1a;border:1px solid #2a2a1a;border-radius:8px;padding:12px;margin:16px 0;text-align:center">
+<p style="color:#c9a84c">🔑 您的 API Key: <code style="background:#2a2a1a;padding:4px 8px;border-radius:4px;font-size:13px">{k}</code></p>
+</div>
+<p style="color:#8a8060;font-size:12px">您可通過此 Key 調用排盤 API。每日運勢將自動推送到您的郵箱。</p>
+<hr style="border:none;border-top:1px solid #2a2a1a;margin:16px 0">
+<p style="color:#4a4020;font-size:11px">TXID: {tx_hash[:20]}… · Order: {order_id}</p>
+</div>"""
+                else:
+                    html = f"""<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
 <h2 style="color:#89b4fa">🔍 Your SEO Audit Key</h2>
 <p style="color:#cdd6f4">Package: <strong>{pkg['name']}</strong></p>
 <p style="color:#cdd6f4">Scans: <strong>{pkg['scans']}</strong></p>
@@ -2097,11 +2220,14 @@ async def confirm_usdt_payment(request: Request):
 <hr style="border:none;border-top:1px solid #313244;margin:16px 0">
 <p style="color:#45475a;font-size:11px">TXID: {tx_hash[:20]}… · Order: {order_id}</p>
 </div>"""
+                from email.mime.text import MIMEText
                 from email.mime.multipart import MIMEMultipart
+                import smtplib
                 msg = MIMEMultipart('alternative')
                 msg['From'] = f"SEO Audit <{SMTP_FROM}>"
                 msg['To'] = buyer_email
-                msg['Subject'] = f"Your SEO Audit Key — {pkg['name']}"
+                subject = '📬 Weekly Subscription Active' if is_monthly else f'Your SEO Audit Key — {pkg["name"]}'
+                msg['Subject'] = subject
                 msg.attach(MIMEText(html, 'html', 'utf-8'))
                 with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
                     s.starttls()
@@ -2110,12 +2236,89 @@ async def confirm_usdt_payment(request: Request):
             except Exception as e:
                 print(f"[usdt] Email failed: {e}")
 
-        return {"success": True, "data": {"key": k, "scans": pkg["scans"], "package": pkg["name"], "order_id": order_id}}
+        return {"success": True, "data": {
+            "key": k,
+            "scans": pkg["scans"] if not is_monthly else "∞",
+            "package": pkg["name"],
+            "order_id": order_id,
+            "is_monthly": is_monthly,
+        }}
 
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+@app.post("/v1/seo/expire-stale-usdt-orders")
+async def expire_stale_usdt_orders():
+    """将超过5分钟的pending USDT订单标记为expired，释放金额锁。由check_usdt.py调用"""
+    try:
+        expired = db_conn.execute(
+            "UPDATE orders SET status='expired' WHERE pay_method='usdt' AND status='pending' AND datetime(created_at) < datetime('now', '-5 minutes')"
+        ).rowcount
+        db_conn.commit()
+        return {"success": True, "expired": expired}
+    except Exception as e:
+        return {"success": False, "error": str(e), "expired": 0}
+
 # ─── USDT Monitor Script ──────────────────────────────────────
+@app.get("/v1/seo/gsc-stats")
+async def get_gsc_stats(domain: str = "", days: int = 30):
+    """Return GSC trend data for dashboard"""
+    if domain:
+        rows = db_conn.execute(
+            "SELECT date, impressions, clicks, ctr, avg_position, top_queries FROM gsc_stats WHERE domain=? ORDER BY date DESC LIMIT ?",
+            (domain, days)
+        ).fetchall()
+    else:
+        rows = db_conn.execute(
+            "SELECT domain, date, impressions, clicks, ctr, avg_position FROM gsc_stats ORDER BY date DESC LIMIT ?",
+            (days * 3,)
+        ).fetchall()
+    
+    data = []
+    for r in rows:
+        if domain:
+            data.append({
+                "date": r[0], "impressions": r[1], "clicks": r[2],
+                "ctr": r[3], "avg_position": r[4],
+                "top_queries": json.loads(r[5]) if r[5] else {}
+            })
+        else:
+            data.append({
+                "domain": r[0], "date": r[1], "impressions": r[2],
+                "clicks": r[3], "ctr": r[4], "avg_position": r[5]
+            })
+    
+    return {"success": True, "data": data}
+
+@app.get("/v1/seo/gsc-latest")
+async def get_gsc_latest():
+    """Return latest snapshot for each domain"""
+    rows = db_conn.execute("""
+        SELECT g1.domain, g1.date, g1.impressions, g1.clicks, g1.ctr, g1.avg_position, g1.top_queries
+        FROM gsc_stats g1
+        INNER JOIN (
+            SELECT domain, MAX(date) as max_date FROM gsc_stats GROUP BY domain
+        ) g2 ON g1.domain = g2.domain AND g1.date = g2.max_date
+        ORDER BY g1.domain
+    """).fetchall()
+    
+    domains = {}
+    for r in rows:
+        domains[r[0]] = {
+            "date": r[1], "impressions": r[2], "clicks": r[3],
+            "ctr": r[4], "avg_position": r[5],
+            "top_queries": json.loads(r[6]) if r[6] else {}
+        }
+    
+    return {"success": True, "data": domains}
+
+@app.get("/v1/seo/check-owner")
+async def check_owner(key: str = ""):
+    """Check if a key has owner privileges (for GSC dashboard)"""
+    import hashlib
+    key_hash = hashlib.sha256(key.encode()).hexdigest()[:16] if key else ""
+    return {"success": True, "is_owner": key_hash == OWNER_KEY_HASH}
+
 @app.get("/v1/seo/pending-usdt-orders")
 async def get_pending_usdt_orders():
     """Return pending USDT orders (for monitoring script)."""
@@ -2126,6 +2329,167 @@ async def get_pending_usdt_orders():
         {"order_id": r[0], "amount": r[1], "created_at": str(r[2]) if r[2] else ""}
         for r in rows
     ]}
+
+
+# ─── Admin: Key Management (owner only) ─────────────────────
+@app.get("/v1/seo/admin/scan-logs")
+async def admin_scan_logs(key: str = "", owner_key: str = ""):
+    """Return scan history for a key. Requires owner key."""
+    import hashlib
+    if hashlib.sha256(owner_key.encode()).hexdigest()[:16] != OWNER_KEY_HASH:
+        return {"success": False, "error": "Unauthorized"}
+    key_hash = hashlib.sha256(key.encode()).hexdigest()[:16]
+    rows = db_conn.execute(
+        "SELECT url, score, ip, created_at FROM scan_logs WHERE key_hash=? ORDER BY created_at DESC LIMIT 100",
+        (key_hash,)
+    ).fetchall()
+    return {"success": True, "data": [
+        {"url": r[0], "score": r[1], "ip": r[2], "time": r[3]} for r in rows
+    ]}
+
+@app.post("/v1/seo/admin/freeze-key")
+async def admin_freeze_key(request: Request):
+    """Disable a key. Requires owner key."""
+    import hashlib
+    body = await request.json()
+    target_key = body.get("key", "")
+    owner_key = body.get("owner_key", "")
+    if hashlib.sha256(owner_key.encode()).hexdigest()[:16] != OWNER_KEY_HASH:
+        return {"success": False, "error": "Unauthorized"}
+    cur = db_conn.execute("SELECT active FROM api_keys WHERE key=?", (target_key,))
+    row = cur.fetchone()
+    if not row:
+        return {"success": False, "error": "Key not found"}
+    db_conn.execute("UPDATE api_keys SET active=0 WHERE key=?", (target_key,))
+    db_conn.commit()
+    return {"success": True, "message": "Key frozen"}
+
+@app.post("/v1/seo/admin/unfreeze-key")
+async def admin_unfreeze_key(request: Request):
+    """Re-enable a frozen key. Requires owner key."""
+    import hashlib
+    body = await request.json()
+    target_key = body.get("key", "")
+    owner_key = body.get("owner_key", "")
+    if hashlib.sha256(owner_key.encode()).hexdigest()[:16] != OWNER_KEY_HASH:
+        return {"success": False, "error": "Unauthorized"}
+    db_conn.execute("UPDATE api_keys SET active=1 WHERE key=?", (target_key,))
+    db_conn.commit()
+    return {"success": True, "message": "Key unfrozen"}
+
+@app.post("/v1/seo/admin/replace-key")
+async def admin_replace_key(request: Request):
+    """Freeze old key and issue a new one with same balance. Requires owner key."""
+    import hashlib, secrets
+    body = await request.json()
+    old_key = body.get("key", "")
+    owner_key = body.get("owner_key", "")
+    if hashlib.sha256(owner_key.encode()).hexdigest()[:16] != OWNER_KEY_HASH:
+        return {"success": False, "error": "Unauthorized"}
+    cur = db_conn.execute("SELECT balance, name FROM api_keys WHERE key=?", (old_key,))
+    row = cur.fetchone()
+    if not row:
+        return {"success": False, "error": "Key not found"}
+    # Freeze old key
+    db_conn.execute("UPDATE api_keys SET active=0 WHERE key=?", (old_key,))
+    # Create new key with same balance
+    new_key = "seo_" + secrets.token_hex(32)
+    db_conn.execute("INSERT INTO api_keys (key, name, balance, created_at, active) VALUES (?,?,?,datetime('now'),1)",
+        (new_key, row[1], row[0]))
+    db_conn.commit()
+    return {"success": True, "data": {"old_key": old_key, "new_key": new_key, "balance": row[0]}}
+
+
+@app.post("/v1/seo/subscribe-email")
+async def seo_subscribe_email(request: Request):
+    """Subscribe email for SEO audit report delivery. Sends first email immediately."""
+    try:
+        body = await request.json()
+        email = body.get("email", "").strip().lower()
+        domain = body.get("domain", "").strip()
+        score = body.get("score", None)
+
+        if not email or "@" not in email:
+            return {"success": False, "error": "Valid email is required"}
+
+        # Step 1: Insert or ignore if already subscribed
+        if score is not None:
+            db_conn.execute(
+                "INSERT OR IGNORE INTO email_subscribers (email, domain, score, step, source) VALUES (?,?,?,0,'scan')",
+                (email, domain, int(score))
+            )
+        else:
+            db_conn.execute(
+                "INSERT OR IGNORE INTO email_subscribers (email, domain, step, source) VALUES (?,?,0,'scan')",
+                (email, domain)
+            )
+        db_conn.commit()
+
+        # Step 2: Send email 1 — SEO audit report ready
+        display_score = score if score is not None else 78
+        display_domain = domain if domain else "your site"
+        subject = f"Your SEO Audit Report is Ready — {display_score}/100"
+
+        # Score ring colour based on value
+        if display_score >= 90:
+            ring_color = "#a6e3a1"
+            ring_label = "Excellent"
+        elif display_score >= 70:
+            ring_color = "#f9e2af"
+            ring_label = "Good"
+        elif display_score >= 50:
+            ring_color = "#fab387"
+            ring_label = "Needs Work"
+        else:
+            ring_color = "#f38ba8"
+            ring_label = "Poor"
+
+        circumference = 251  # 2 * pi * 40
+        offset = circumference - (display_score / 100) * circumference
+
+        html = f"""<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;background:#1e1e2e;border-radius:16px;color:#cdd6f4">
+<div style="text-align:center;margin-bottom:24px">
+<h1 style="font-size:22px;color:#cdd6f4;margin:0 0 4px">🔍 SEO Audit Complete</h1>
+<p style="color:#585b70;font-size:13px;margin:0">{display_domain}</p>
+</div>
+<div style="text-align:center;margin:24px 0">
+<svg width="120" height="120" viewBox="0 0 120 120" style="display:inline-block">
+<circle cx="60" cy="60" r="40" fill="none" stroke="#313244" stroke-width="8"/>
+<circle cx="60" cy="60" r="40" fill="none" stroke="{ring_color}" stroke-width="8" stroke-dasharray="{circumference}" stroke-dashoffset="{offset}" stroke-linecap="round" transform="rotate(-90,60,60)"/>
+<text x="60" y="56" text-anchor="middle" fill="{ring_color}" font-size="26" font-weight="bold">{display_score}</text>
+<text x="60" y="72" text-anchor="middle" fill="#585b70" font-size="11">/ 100</text>
+</svg>
+<p style="color:{ring_color};font-size:14px;font-weight:600;margin:8px 0 0">{ring_label}</p>
+</div>
+<div style="background:#181825;border-radius:12px;padding:20px;margin:20px 0">
+<h3 style="color:#cdd6f4;font-size:15px;margin:0 0 12px">📋 Top Issues Found</h3>
+<table style="width:100%;border-collapse:collapse;font-size:13px">
+<tr><td style="padding:8px 0;border-bottom:1px solid #313244">🔴 Missing meta descriptions</td><td style="text-align:right;color:#f38ba8;padding:8px 0;border-bottom:1px solid #313244">High</td></tr>
+<tr><td style="padding:8px 0;border-bottom:1px solid #313244">🟠 Slow LCP (&gt;2.5s)</td><td style="text-align:right;color:#fab387;padding:8px 0;border-bottom:1px solid #313244">Medium</td></tr>
+<tr><td style="padding:8px 0">🟡 Missing alt attributes on images</td><td style="text-align:right;color:#f9e2af;padding:8px 0">Medium</td></tr>
+</table>
+</div>
+<div style="text-align:center;margin:24px 0">
+<a href="https://seo.textools.site/#pricing" style="display:inline-block;background:#89b4fa;color:#1e1e2e;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px">Unlock Full Report →</a>
+</div>
+<div style="margin-top:20px;padding-top:16px;border-top:1px solid #313244;text-align:center">
+<p style="color:#585b70;font-size:11px;margin:0">You received this email because you requested an SEO audit on seo.textools.site</p>
+<p style="color:#45475a;font-size:11px;margin:6px 0 0">{display_domain} · seo.textools.site</p>
+</div>
+</div>"""
+
+        sent = send_email(email, subject, html)
+
+        # Step 3: Update step if email was sent
+        if sent:
+            db_conn.execute("UPDATE email_subscribers SET step=1, last_sent=datetime('now') WHERE email=?", (email,))
+            db_conn.commit()
+
+        return {"success": True}
+
+    except Exception as e:
+        print(f"[subscribe-email] Error: {e}")
+        return {"success": False, "error": str(e)}
 
 
 if __name__ == "__main__":

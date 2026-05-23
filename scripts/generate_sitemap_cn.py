@@ -2,6 +2,7 @@
 """Generate sitemap_cn.xml by scanning articles/ directory (Chinese articles)"""
 from pathlib import Path
 from datetime import date
+from urllib.parse import quote
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ARTICLES_DIR = BASE_DIR / "articles"
@@ -23,7 +24,8 @@ z_dir = BASE_DIR / "z"
 if z_dir.exists():
     files = sorted(z_dir.glob("*.html"), reverse=True)
     for f in files:
-        urls.append(f'  <url>\n    <loc>{SITE_URL}/z/{f.name}</loc>\n    <priority>0.6</priority>\n    <lastmod>{today}</lastmod>\n  </url>')
+        encoded_name = quote(f.name, safe='')
+        urls.append(f'  <url>\n    <loc>{SITE_URL}/z/{encoded_name}</loc>\n    <priority>0.6</priority>\n    <lastmod>{today}</lastmod>\n  </url>')
 
 # Add Chinese articles (exclude en/ directory and index.html)
 if ARTICLES_DIR.exists():
@@ -32,7 +34,8 @@ if ARTICLES_DIR.exists():
         name = f.name
         if name == "index.html":
             continue
-        urls.append(f'  <url>\n    <loc>{SITE_URL}/articles/{name}</loc>\n    <priority>0.6</priority>\n    <lastmod>{today}</lastmod>\n  </url>')
+        encoded_name = quote(name, safe='')
+        urls.append(f'  <url>\n    <loc>{SITE_URL}/articles/{encoded_name}</loc>\n    <priority>0.6</priority>\n    <lastmod>{today}</lastmod>\n  </url>')
 
 sitemap = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

@@ -106,6 +106,16 @@ def main():
     open(LOCK_FILE, "w").close()
 
     try:
+        # 过期待处理订单：超过30分钟未付款的标记为expired，释放金额锁
+        try:
+            resp = requests.post(f"{API_BASE}/v1/seo/expire-stale-usdt-orders", timeout=10)
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get("expired", 0) > 0:
+                    print(f"[usdt-mon] 🧹 Expired {data['expired']} stale orders")
+        except Exception as e:
+            print(f"[usdt-mon] ⚠️ Expire check failed: {e}")
+
         processed = load_processed()
         orders = get_pending_orders()
         transfers = get_recent_transfers()

@@ -78,8 +78,13 @@ def generate_combined():
 
 
 def make_url(path, priority):
+    from urllib.parse import quote
+    # URL-encode only the path portion (not the leading /)
+    parts = path.split("/")
+    encoded_parts = [quote(p, safe='') if p else p for p in parts]
+    encoded_path = "/".join(encoded_parts)
     return f"""  <url>
-    <loc>{SITE_URL}{path}</loc>
+    <loc>{SITE_URL}{encoded_path}</loc>
     <priority>{priority}</priority>
     <lastmod>{today}</lastmod>
   </url>"""

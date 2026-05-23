@@ -1,38 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ziweiapi.site/api-docs.html?lang=en</loc>
+    <loc>https://ziweiapi.site/api-docs.html%3Flang%3Den</loc>
     <priority>0.9</priority>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-23</lastmod>
   </url>
   <url>
     <loc>https://ziweiapi.site/articles/en/</loc>
     <priority>0.7</priority>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-23</lastmod>
   </url>
   <url>
-    <loc>https://ziweiapi.site/articles/en/20260521-renovation-and-moving-dates-chinese-calendar-wisdom.html</loc>
+    <loc>https://ziweiapi.site/articles/en/20260523-your-chinese-zodiac-element-discover-your-inner-nature.html</loc>
     <priority>0.6</priority>
-    <lastmod>2026-05-21</lastmod>
-  </url>
-  <url>
-    <loc>https://ziweiapi.site/articles/en/20260520-when-to-start-a-business-chinese-astrology-timing-guide.html</loc>
-    <priority>0.6</priority>
-    <lastmod>2026-05-21</lastmod>
-  </url>
-  <url>
-    <loc>https://ziweiapi.site/articles/en/20260518-the-fools-journey-comparing-tarot-with-chinese-zodiac-destin.html</loc>
-    <priority>0.6</priority>
-    <lastmod>2026-05-21</lastmod>
-  </url>
-  <url>
-    <loc>https://ziweiapi.site/articles/en/20260518-tarot-tower-vs-chinese-daxian-predicting-lifes-crises.html</loc>
-    <priority>0.6</priority>
-    <lastmod>2026-05-21</lastmod>
-  </url>
-  <url>
-    <loc>https://ziweiapi.site/articles/en/20260518-tarot-death-card-meaning-vs-chinese-ba-zi-transformation-cyc.html</loc>
-    <priority>0.6</priority>
-    <lastmod>2026-05-21</lastmod>
+    <lastmod>2026-05-23</lastmod>
   </url>
 </urlset>
